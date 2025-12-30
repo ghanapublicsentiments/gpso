@@ -18,6 +18,8 @@ name: GPSO Pipeline
 # REQUIRED GITHUB SECRETS:
 # - BIGQUERY_CREDENTIALS: Complete BigQuery service account JSON
 # - BIGQUERY_DATASET: BigQuery dataset name
+# - GOOGLE_API_KEY: YouTube Data API v3 key
+# - FACEBOOK_ACCESS_TOKEN: Facebook Graph API access token
 # - OPENAI_API_KEY, ANTHROPIC_API_KEY, GEMINI_API_KEY, GROK_API_KEY, NVIDIA_API_KEY
 
 on:
@@ -118,6 +120,7 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: bigquery-credentials.json
           BIGQUERY_DATASET: ${{ secrets.BIGQUERY_DATASET }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          FACEBOOK_ACCESS_TOKEN: ${{ secrets.FACEBOOK_ACCESS_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
