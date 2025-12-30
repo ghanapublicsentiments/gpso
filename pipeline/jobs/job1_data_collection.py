@@ -5,6 +5,7 @@ import sys
 from pipeline.logger import setup_logger
 from pipeline.pipeline_config import PipelineConfig
 from pipeline.stages.data_processing import process_latest_data
+from sources.facebook import save_facebook_to_database
 from sources.youtube import save_youtube_to_database
 
 logger = setup_logger("job1")
@@ -52,9 +53,6 @@ def main():
     if config.data_collection.collect_facebook:
         logger.info("Collecting Facebook posts...")
         try:
-            # Import only when needed to avoid triggering .env warnings when disabled
-            from sources.facebook import save_facebook_to_database
-            
             facebook_stats = save_facebook_to_database(
                 pipeline_run_id=pipeline_run_id,
                 max_posts_per_page=config.data_collection.max_posts_per_page,
