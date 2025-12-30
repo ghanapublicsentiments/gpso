@@ -1,0 +1,305 @@
+name: GPSO Pipeline
+
+# This workflow runs the GPSO sentiment analysis pipeline in 6 sequential jobs:
+# Job 0: Initialize Pipeline (create run ID, clear checkpoints)
+# Job 1: Data Collection (scraping)
+# Job 2: Captions & Entity Detection
+# Job 3: Sentiment Analysis (most expensive)
+# Job 4: Post-processing (smoothing, normalization, summaries)
+# Job 5: Complete Pipeline (mark as complete, save token stats)
+#
+# Each job reads from the checkpoint of the previous job, allowing for:
+# - Resume from failure (just re-run the failed job)
+# - Cost control (avoid re-running expensive LLM operations)
+# - Clear separation of concerns
+#
+# See PIPELINE_JOBS.md for detailed documentation
+#
+# REQUIRED GITHUB SECRETS:
+# - BIGQUERY_CREDENTIALS: Complete BigQuery service account JSON
+# - BIGQUERY_DATASET: BigQuery dataset name
+# - OPENAI_API_KEY, ANTHROPIC_API_KEY, GEMINI_API_KEY, GROK_API_KEY, NVIDIA_API_KEY
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Pipeline run ID to continue from (optional - leave empty for new run)'
+        required: false
+        type: string
+  schedule:
+    # Run daily at 07:05 UTC
+    - cron: '5 7 * * *'
+
+jobs:
+  job0-init-pipeline:
+    name: Job 0 - Initialize Pipeline
+    runs-on: ubuntu-latest
+    outputs:
+      pipeline_run_id: ${{ steps.extract-run-id.outputs.run_id }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      
+      - name: Configure BigQuery credentials
+        run: |
+          echo '${{ secrets.BIGQUERY_CREDENTIALS }}' > bigquery-credentials.json
+          chmod 600 bigquery-credentials.json
+      
+      - name: Run Job 0 - Initialize Pipeline
+        if: ${{ !inputs.run_id }}
+        run: |
+          echo "Initializing new pipeline run"
+          uv run python pipeline/jobs/job0_init_pipeline.py | tee job0_output.txt
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: bigquery-credentials.json
+          BIGQUERY_DATASET: ${{ secrets.BIGQUERY_DATASET }}
+      
+      - name: Extract Pipeline Run ID
+        id: extract-run-id
+        run: |
+          if [ -n "${{ inputs.run_id }}" ]; then
+            # Continue mode - use provided run ID
+            RUN_ID=${{ inputs.run_id }}
+            echo "Using provided run ID: $RUN_ID"
+          else
+            # New run - extract from Job 0 output (BSD grep compatible)
+            RUN_ID=$(grep -o 'Pipeline Run ID: [0-9]*' job0_output.txt | grep -o '[0-9]*' | tail -1)
+            echo "Extracted new Pipeline Run ID: $RUN_ID"
+          fi
+          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+      
+      - name: Upload Job 0 logs
+        if: ${{ always() && !inputs.run_id }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: job0-logs
+          path: job0_output.txt
+
+  job1-data-collection:
+    name: Job 1 - Data Collection
+    runs-on: ubuntu-latest
+    needs: job0-init-pipeline
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      
+      - name: Configure BigQuery credentials
+        run: |
+          echo '${{ secrets.BIGQUERY_CREDENTIALS }}' > bigquery-credentials.json
+          chmod 600 bigquery-credentials.json
+      
+      - name: Run Job 1 - Data Collection
+        run: |
+          uv run python pipeline/jobs/job1_data_collection.py --run-id ${{ needs.job0-init-pipeline.outputs.pipeline_run_id }} | tee job1_output.txt
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: bigquery-credentials.json
+          BIGQUERY_DATASET: ${{ secrets.BIGQUERY_DATASET }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+      
+      - name: Upload Job 1 logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: job1-logs
+          path: job1_output.txt
+
+  job2-captions-entities:
+    name: Job 2 - Captions & Entities
+    runs-on: ubuntu-latest
+    needs: [job0-init-pipeline, job1-data-collection]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      
+      - name: Configure BigQuery credentials
+        run: |
+          echo '${{ secrets.BIGQUERY_CREDENTIALS }}' > bigquery-credentials.json
+          chmod 600 bigquery-credentials.json
+      
+      - name: Run Job 2 - Captions & Entities
+        run: |
+          uv run python pipeline/jobs/job2_captions_entities.py --run-id ${{ needs.job0-init-pipeline.outputs.pipeline_run_id }} | tee job2_output.txt
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: bigquery-credentials.json
+          BIGQUERY_DATASET: ${{ secrets.BIGQUERY_DATASET }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+      
+      - name: Upload Job 2 logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: job2-logs
+          path: job2_output.txt
+
+  job3-sentiment-analysis:
+    name: Job 3 - Sentiment Analysis
+    runs-on: ubuntu-latest
+    needs: [job0-init-pipeline, job2-captions-entities]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      
+      - name: Configure BigQuery credentials
+        run: |
+          echo '${{ secrets.BIGQUERY_CREDENTIALS }}' > bigquery-credentials.json
+          chmod 600 bigquery-credentials.json
+      
+      - name: Run Job 3 - Sentiment Analysis
+        run: |
+          uv run python pipeline/jobs/job3_sentiment_analysis.py --run-id ${{ needs.job0-init-pipeline.outputs.pipeline_run_id }} | tee job3_output.txt
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: bigquery-credentials.json
+          BIGQUERY_DATASET: ${{ secrets.BIGQUERY_DATASET }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+      
+      - name: Upload Job 3 logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: job3-logs
+          path: job3_output.txt
+
+  job4-post-processing:
+    name: Job 4 - Post Processing
+    runs-on: ubuntu-latest
+    needs: [job0-init-pipeline, job3-sentiment-analysis]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      
+      - name: Configure BigQuery credentials
+        run: |
+          echo '${{ secrets.BIGQUERY_CREDENTIALS }}' > bigquery-credentials.json
+          chmod 600 bigquery-credentials.json
+      
+      - name: Run Job 4 - Finalization
+        run: |
+          uv run python pipeline/jobs/job4_post_processing.py --run-id ${{ needs.job0-init-pipeline.outputs.pipeline_run_id }} | tee job4_output.txt
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: bigquery-credentials.json
+          BIGQUERY_DATASET: ${{ secrets.BIGQUERY_DATASET }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+      
+      - name: Upload Job 4 logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: job4-logs
+          path: job4_output.txt
+
+  job5-complete-pipeline:
+    name: Job 5 - Complete Pipeline
+    runs-on: ubuntu-latest
+    needs: [job0-init-pipeline, job4-post-processing]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      
+      - name: Configure BigQuery credentials
+        run: |
+          echo '${{ secrets.BIGQUERY_CREDENTIALS }}' > bigquery-credentials.json
+          chmod 600 bigquery-credentials.json
+      
+      - name: Run Job 5 - Complete Pipeline
+        run: |
+          uv run python pipeline/jobs/job5_complete_pipeline.py --run-id ${{ needs.job0-init-pipeline.outputs.pipeline_run_id }} | tee job5_output.txt
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: bigquery-credentials.json
+          BIGQUERY_DATASET: ${{ secrets.BIGQUERY_DATASET }}
+      
+      - name: Upload Job 5 logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: job5-logs
+          path: job5_output.txt
+      
+      - name: Pipeline Summary
+        if: success()
+        run: |
+          echo "✅ Full pipeline completed successfully!"
+          echo "Pipeline Run ID: ${{ needs.job0-init-pipeline.outputs.pipeline_run_id }}"

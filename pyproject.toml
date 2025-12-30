@@ -1,0 +1,107 @@
+[project]
+name = "gpso"
+version = "0.1.0"
+description = "Ghana Public Sentiments Observatory - A sentiment analysis pipeline for Ghanaian news and social media"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic~=2.12.5",
+
+    # Core data processing
+    "pandas~=2.3.3",
+    "numpy~=2.3.5",
+
+    # Visualization
+    "plotly~=6.5.0",
+
+    # Machine Learning & NLP
+    "sentence-transformers~=5.1.2",
+    "scikit-learn~=1.7.2",
+    "scipy~=1.16.3",
+
+    # LLM & AI
+    "openai~=2.8.1",
+
+    # Database
+    "google-cloud-bigquery~=3.26.0",
+    "db-dtypes~=1.4.4",
+
+    # Text Processing
+    "rapidfuzz~=3.14.3",
+
+    # Web Framework
+    "streamlit~=1.52.0",
+
+    # Timezone handling
+    "pytz~=2025.2",
+
+    # Environment variables
+    "python-dotenv~=1.2.1",
+
+    # Google discovery API
+    "google-api-python-client~=2.187.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pipeline", "database", "app"]
+
+[dependency-groups]
+dev = [
+    "pytest~=9.0.1",
+    "pytest-cov~=7.0.0",
+    "black~=25.11.0",
+    "ruff~=0.14.7",
+    "mypy~=1.19.0",
+    "ipython~=9.8.0",
+]
+
+[tool.black]
+line-length = 120
+target-version = ["py310", "py311", "py312"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+  | __pycache__
+)/
+'''
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by black)
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true

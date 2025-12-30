@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ghana Public Sentiment Observatory - Analyzing public sentiment from social media">
+    <title>Ghana Public Sentiment Observatory</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow: hidden;
+            background-color: #0e1117;
+        }
+        
+        #streamlit-iframe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            border: none;
+            border-radius: 0;
+            overflow: hidden;
+        }
+        
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ffffff;
+            font-size: 18px;
+            z-index: -1;
+        }
+        
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ff4b4b;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading">
+        <div class="loader"></div>
+        <p>Loading Ghana Public Sentiment Observatory...</p>
+    </div>
+    
+    <iframe 
+        id="streamlit-iframe"
+        src="https://gpsobservatory.streamlit.app/?embed=true"
+        allow="clipboard-read; clipboard-write;"
+        allowfullscreen
+        title="Ghana Public Sentiment Observatory">
+    </iframe>
+    
+    <script>
+        // Optional: Hide loading indicator once iframe loads
+        document.getElementById('streamlit-iframe').addEventListener('load', function() {
+            document.querySelector('.loading').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
