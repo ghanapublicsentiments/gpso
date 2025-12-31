@@ -8,7 +8,6 @@ from config import MODEL_PROVIDER_MAP
 
 
 # Load available secrets from st.secrets into os.environ
-# This allows us to use the existing config.py logic that reads from os.getenv() when using Streamlit secrets
 def load_secrets_to_env():
     """Load Streamlit secrets into environment variables."""
     if hasattr(st, 'secrets') and st.secrets:
@@ -22,8 +21,7 @@ def load_secrets_to_env():
         if "BIGQUERY_IS_PROD" in st.secrets:
             os.environ["BIGQUERY_IS_PROD"] = st.secrets["BIGQUERY_IS_PROD"]
         
-        # Store GCP credentials in session state (in-memory) instead of writing to disk
-        # This prevents accidental exposure of credentials through file system
+        # Store GCP credentials in session state
         if "gcp_service_account" in st.secrets:
             if "gcp_credentials" not in st.session_state:
                 st.session_state["gcp_credentials"] = dict(st.secrets["gcp_service_account"])
@@ -89,6 +87,12 @@ st.set_page_config(page_title="Ghana Public Sentiments Observatory", page_icon="
 # Navigation bar with custom header
 st.html("""
 <style>
+[data-testid="stAppViewContainer"], 
+[data-testid="stHeader"], 
+[data-testid="stSidebar"], 
+.main .block-container {
+    border-radius: 0px !important;
+}
 .stAppHeader {
     background-color: #fdfdf8;
     border-bottom: 1px solid #e0e0d8;
