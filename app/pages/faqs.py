@@ -59,6 +59,21 @@ with st.expander("Are you politically affiliated?"):
         We are committed to transparency and welcome scrutiny of our methods and results.
     """)
 
+with st.expander("What is the legal entity behind GPSO?"):
+    st.markdown("""
+        The Ghana Public Sentiments Observatory is registered as **"Drumline Strategies"** 
+        in Alberta, Canada.
+        
+        This legal structure allows us to:
+        - Operate transparently with official registration
+        - Maintain independence from Ghanaian political interests
+        - Accept grants and donations while ensuring accountability
+        - Protect the project's non-partisan status
+        
+        Despite the registered name, we operate publicly as the Ghana Public Sentiments Observatory 
+        to clearly communicate our mission and focus.
+    """)
+
 with st.expander("Who can benefit from GPSO?"):
     st.markdown("""
         GPSO is designed to serve multiple audiences:
@@ -329,8 +344,8 @@ st.markdown("#### 🔒 Trust & Transparency")
 with st.expander("Can I trust the insights provided by GPSO?"):
     st.markdown("""
         **GPSO is designed for transparency and accountability:**
-        
-        ✅ **Open Source**: All code is available on [GitHub](https://github.com/kojosarfo/gpso)  
+
+        ✅ **Open Source**: All code is available on [GitHub](https://github.com/ghanapublicsentiments/gpso)  
         ✅ **Documented Methods**: Full methodology is published on our site  
         ✅ **Sample Sizes Shown**: You can see how many comments inform each insight  
         ✅ **No Hidden Agenda**: We have no political or commercial affiliations  
@@ -419,7 +434,7 @@ with st.expander("Can I contribute data or suggest improvements?"):
         **How to contribute:**
         
         **💡 Suggest Features**
-        - Open an issue on [GitHub](https://github.com/kojosarfo/gpso/issues)
+        - Open an issue on [GitHub](https://github.com/ghanapublicsentiments/gpso/issues)
         - Describe the feature and why it would be valuable
         - Discuss with the community
         
@@ -467,8 +482,8 @@ with st.expander("How is this project funded?"):
 with st.expander("How can I stay updated on GPSO developments?"):
     st.markdown("""
         **Stay Connected:**
-        
-        - ⭐ **Star our GitHub repo**: [github.com/kojosarfo/gpso](https://github.com/kojosarfo/gpso)
+
+        - ⭐ **Star our GitHub repo**: [github.com/ghanapublicsentiments/gpso](https://github.com/ghanapublicsentiments/gpso)
         - 👀 **Watch for updates**: Enable notifications on GitHub
         - 📢 **Follow discussions**: Join conversations in GitHub Discussions
         - 📰 **Check the platform**: We announce major updates on the Home page
@@ -492,7 +507,7 @@ st.divider()
 st.markdown("""
     <div style='text-align: center; color: #666; padding: 20px;'>
         <p><strong>Still have questions?</strong></p>
-        <p>Open an issue on <a href='https://github.com/kojosarfo/gpso/issues' target='_blank'>GitHub</a> 
+        <p>Open an issue on <a href='https://github.com/ghanapublicsentiments/gpso/issues' target='_blank'>GitHub</a> 
         or explore our <a href='/Methodology'>Methodology</a> page for more details.</p>
     </div>
 """, unsafe_allow_html=True)

@@ -195,7 +195,7 @@ st.sidebar.divider()
 
 st.sidebar.caption(
     """
-    This dashboard is an open-source initiative. You can contribute on [GitHub](https://github.com/kojosarfo/gpso/tree/main).
+    This dashboard is an open-source initiative by Drumline Strategies. You can contribute on [GitHub](https://github.com/ghanapublicsentiments/gpso).
     """.strip()
 )
 

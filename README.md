@@ -364,7 +364,7 @@ Contributions are welcome! Here's how to get started:
 ### 1. Fork the Repository
 
 ```bash
-git clone https://github.com/kojosarfo/gpso.git
+git clone https://github.com/ghanapublicsentiments/gpso.git
 cd gpso
 git checkout -b feature/your-feature-name
 ```

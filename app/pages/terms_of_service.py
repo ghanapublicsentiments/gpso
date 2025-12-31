@@ -95,7 +95,7 @@ We respect your right to control your data. If you believe your public comments 
 **How to Request Deletion:**
 
 1. **Submit a Request via GitHub Issues:**
-   - Go to [github.com/kojosarfo/gpso/issues](https://github.com/kojosarfo/gpso/issues)
+   - Go to [github.com/ghanapublicsentiments/gpso/issues](https://github.com/ghanapublicsentiments/gpso/issues)
    - Create a new issue with the title "Data Deletion Request"
    - Provide the following information:
      - Platform where comment was posted (YouTube, Facebook, etc.)
@@ -171,7 +171,7 @@ To exercise any of these rights, please follow the deletion request process outl
 #### 6. Intellectual Property
 
 **6.1 Open Source**
-- This platform is open source and available on [GitHub](https://github.com/kojosarfo/gpso)
+- This platform is open source and available on [GitHub](https://github.com/ghanapublicsentiments/gpso)
 - The code is licensed under the terms specified in the repository
 - Contributions are welcome subject to the project's contribution guidelines
 
@@ -211,7 +211,7 @@ We reserve the right to modify these terms at any time. Changes will be effectiv
 If you use GPSO data or insights in academic research, please cite:
 ```
 Ghana Public Sentiments Observatory (GPSO)
-Available at: [Platform URL]
+Available at: https://ghanapublicsentiments.com, https://github.com/ghanapublicsentiments/gpso
 Accessed: [Date]
 ```
 
@@ -221,8 +221,8 @@ We welcome collaboration with researchers and institutions. Please contact us th
 #### 11. Contact Information
 
 For questions, concerns, or feedback regarding these terms:
-- GitHub Issues: [github.com/kojosarfo/gpso/issues](https://github.com/kojosarfo/gpso/issues)
-- Repository: [github.com/kojosarfo/gpso](https://github.com/kojosarfo/gpso)
+- GitHub Issues: [github.com/ghanapublicsentiments/gpso/issues](https://github.com/ghanapublicsentiments/gpso/issues)
+- Repository: [github.com/ghanapublicsentiments/gpso](https://github.com/ghanapublicsentiments/gpso)
 
 #### 12. Governing Law
 
@@ -237,4 +237,4 @@ By using the Ghana Public Sentiments Observatory, you acknowledge that you have 
 
 st.divider()
 
-st.caption("This is an open-source initiative. You can contribute on [GitHub](https://github.com/kojosarfo/gpso).")
+st.caption("This is an open-source initiative. You can contribute on [GitHub](https://github.com/ghanapublicsentiments/gpso).")
