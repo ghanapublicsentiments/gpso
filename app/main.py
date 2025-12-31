@@ -87,10 +87,12 @@ st.set_page_config(page_title="Ghana Public Sentiments Observatory", page_icon="
 # Navigation bar with custom header
 st.html("""
 <style>
-[data-testid="stAppViewContainer"], 
-[data-testid="stHeader"], 
-[data-testid="stSidebar"], 
-.main .block-container {
+.stApp, [data-testid="stAppViewContainer"], .stAppViewMain {
+    border-radius: 0px !important;
+}
+.stAppHeader {
+    background-color: #fdfdf8;
+    border-bottom: 1px solid #e0e0d8;
     border-radius: 0px !important;
 }
 .stAppHeader {
