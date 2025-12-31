@@ -59,6 +59,21 @@ with st.expander("Are you politically affiliated?"):
         We are committed to transparency and welcome scrutiny of our methods and results.
     """)
 
+with st.expander("What is the legal entity behind GPSO?"):
+    st.markdown("""
+        The Ghana Public Sentiments Observatory is registered as **"Drumline Strategies"** 
+        in Alberta, Canada.
+        
+        This legal structure allows us to:
+        - Operate transparently with official registration
+        - Maintain independence from Ghanaian political interests
+        - Accept grants and donations while ensuring accountability
+        - Protect the project's non-partisan status
+        
+        Despite the registered name, we operate publicly as the Ghana Public Sentiments Observatory 
+        to clearly communicate our mission and focus.
+    """)
+
 with st.expander("Who can benefit from GPSO?"):
     st.markdown("""
         GPSO is designed to serve multiple audiences:
