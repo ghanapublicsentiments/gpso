@@ -1,8 +1,6 @@
 """Main Streamlit application entry point for Ghana Public Sentiments Observatory."""
 
-import json
 import os
-from pathlib import Path
 import streamlit as st
 from streamlit.errors import StreamlitSecretNotFoundError
 
