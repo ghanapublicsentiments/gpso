@@ -85,41 +85,44 @@ page = st.navigation([home_page, chat_page, playground_page, methodology_page, f
 st.set_page_config(page_title="Ghana Public Sentiments Observatory", page_icon="💬", layout="wide")
 
 # Navigation bar with custom header
-st.html("""
-<style>
-.stApp, [data-testid="stAppViewContainer"], .stAppViewMain {
-    border-radius: 0px !important;
-}
-.stAppHeader {
-    background-color: #fdfdf8;
-    border-bottom: 1px solid #e0e0d8;
-    border-radius: 0px !important;
-}
-.stAppHeader {
-    background-color: #fdfdf8;
-    border-bottom: 1px solid #e0e0d8;
-}
-.stAppHeader::before {
-    content: "Ghana Public Sentiments Observatory";
-    color: #3d3a2a;
-    font-size: 20px;
-    font-weight: 800;
-    font-family: 'SpaceGrotesk', sans-serif;
-    position: absolute;
-    left: 5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    white-space: nowrap;
-}
-footer {
-    visibility: hidden;
-}
-footer::after {
-    content: '';
-    visibility: hidden;
-}
-</style>
-""")
+st.html(
+    """
+    <style>
+    /* Remove all rounded corners */
+    .stApp, .main, .block-container, [data-testid="stAppViewContainer"],
+    [data-testid="stHeader"], [data-testid="stToolbar"],
+    .stMarkdown, .element-container, div[data-testid="column"] > div,
+    section[data-testid="stSidebar"], iframe {
+        border-radius: 0 !important;
+    }
+    
+    .stAppHeader {
+        background-color: #fdfdf8;
+        border-bottom: 1px solid #e0e0d8;
+        border-radius: 0 !important;
+    }
+    .stAppHeader::before {
+        content: "Ghana Public Sentiments Observatory";
+        color: #3d3a2a;
+        font-size: 20px;
+        font-weight: 800;
+        font-family: 'SpaceGrotesk', sans-serif;
+        position: absolute;
+        left: 5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        white-space: nowrap;
+    }
+    footer {
+        visibility: hidden;
+    }
+    footer::after {
+        content: '';
+        visibility: hidden;
+    }
+    </style>
+    """
+)
 
 # Run the selected page
 page.run()
