@@ -65,7 +65,8 @@ def create_model_selector(key: str, help_text: str | None = None) -> str:
         options=available_models,
         index=0,
         help=help_text,
-        key=key
+        key=key,
+        label_visibility="collapsed"
     )
     
     return selected_model
@@ -158,8 +159,8 @@ with st.sidebar.container(height=310):
 
     elif page.title == "Chat":
         st.page_link("pages/chat.py", label="Chat", icon=":material/chat:")
-        st.write("Chat with an AI assistant for more custom analysis and insights into public sentiments.")
-        
+        st.write("Chat with an AI assistant for custom analysis of public sentiments.")
+
         st.session_state.chat_model = create_model_selector(key="chat_model_selector")
         
         selected_model = st.session_state.chat_model
@@ -176,7 +177,7 @@ with st.sidebar.container(height=310):
 
     elif page.title == "Playground":
         st.page_link("pages/playground.py", label="Playground", icon=":material/experiment:")
-        st.write("Simulate public sentiments to news and policy announcements")
+        st.write("Simulate public sentiments to news")
 
         st.session_state.playground_model = create_model_selector(key="playground_model_selector")
         
