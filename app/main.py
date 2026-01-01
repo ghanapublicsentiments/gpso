@@ -113,6 +113,23 @@ st.html(
         transform: translateY(-50%);
         white-space: nowrap;
     }
+    
+    /* Responsive header for tablets and smaller screens */
+    @media (max-width: 768px) {
+        .stAppHeader::before {
+            font-size: 16px;
+            left: 3rem;
+        }
+    }
+    
+    /* Responsive header for mobile devices */
+    @media (max-width: 480px) {
+        .stAppHeader::before {
+            content: "GPSO";
+            font-size: 18px;
+            left: 2rem;
+        }
+    }
     footer {
         visibility: hidden;
     }

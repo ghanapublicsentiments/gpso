@@ -475,6 +475,7 @@ dependencies = [
     { name = "scipy" },
     { name = "sentence-transformers" },
     { name = "streamlit" },
+    { name = "streamlit-carousel" },
 ]
 
 [package.dev-dependencies]
@@ -504,6 +505,7 @@ requires-dist = [
     { name = "scipy", specifier = "~=1.16.3" },
     { name = "sentence-transformers", specifier = "~=5.1.2" },
     { name = "streamlit", specifier = "~=1.52.0" },
+    { name = "streamlit-carousel", specifier = "~=1.1.2" },
 ]
 
 [package.metadata.requires-dev]
@@ -2125,6 +2127,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/e5/be/89ee065e06597bf12bff0c76299fabd255971c882c1d572a8819dc1510bf/streamlit-1.52.0.tar.gz", hash = "sha256:572095458fbd68587776f4d39d7f89dcb4a54c0ee43572713026bd9963580af8", size = 8578948, upload-time = "2025-12-04T00:18:17.354Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/11/44/284b6c3b96d5705fafd6f75cffab4cbe047f836e6f0cf55916e044c92058/streamlit-1.52.0-py3-none-any.whl", hash = "sha256:ef59133890a3b0aa45674d54b258170cf56bcc4ab65a1b930fa7671a45fa760a", size = 9024661, upload-time = "2025-12-04T00:18:14.637Z" },
+]
+
+[[package]]
+name = "streamlit-carousel"
+version = "1.1.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "streamlit" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8b/0d/1d8254fd32e25ea5c7422b0003ddd96dc6d79ce414dbb7bb807facac7d87/streamlit_carousel-1.1.2.tar.gz", hash = "sha256:30e2f9255bd81611eb7c3493003a454fcec00f547d6ad353a5c98d89d7bbce20", size = 559535, upload-time = "2024-08-26T17:42:28.761Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5b/b8/16f7e65c3ec9d7346f2638be4658cbc93eee13c5e99a4d12d1c8b6de112a/streamlit_carousel-1.1.2-py3-none-any.whl", hash = "sha256:dabc6e86056c704b105d39299a29131f2283713b4d91ce95fd36ad02b62855bc", size = 563126, upload-time = "2024-08-26T17:42:26.875Z" },
 ]
 
 [[package]]
