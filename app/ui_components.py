@@ -98,31 +98,32 @@ def render_entity_card(
 
     marker_color = interpolate_gradient_color(position)
     
-    # Determine sentiment category and color - App theme colors with dark backgrounds
+    # Determine sentiment category and color - Using gradient colors
+    # Gradient: #d4a89a (negative) -> #ecebe3 (neutral) -> #c8ddc8 (positive)
     if sentiment_score > 0.3:
         sentiment_category = "Positive"
-        category_color = "#059669"  # Green from app's chartCategoricalColors
-        category_bg = "#064e3b"  # Dark green background for dark theme
+        category_color = "#c8ddc8"  # Positive end of gradient
+        category_bg = "#5a7a5a"  # Darker shade of positive color
         category_icon = "😊"
     elif sentiment_score < -0.3:
         sentiment_category = "Negative"
-        category_color = "#bb5a38"  # Primary color from app theme (rust)
-        category_bg = "#78350f"  # Dark brown background
+        category_color = "#d4a89a"  # Negative end of gradient
+        category_bg = "#8a6a5a"  # Darker shade of negative color
         category_icon = "😟"
     else:
         sentiment_category = "Neutral"
-        category_color = "#fbbf24"  # Yellow from app's chartCategoricalColors
-        category_bg = "#713f12"  # Dark yellow background
+        category_color = "#ecebe3"  # Neutral center of gradient
+        category_bg = "#9a9990"  # Darker shade of neutral color
         category_icon = "😐"
 
-    # Badges - using app theme colors
+    # Badges - using gradient colors
     badges_html = ""
     if is_popular and not is_new:
-        badges_html += '<span style="display: inline-block; font-size: 9px; padding: 3px 8px; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; border-radius: 12px; font-weight: 600; margin-left: 6px; box-shadow: 0 2px 4px rgba(14,165,233,0.3);">⭐ Popular</span>'
+        badges_html += '<span style="display: inline-block; font-size: 9px; padding: 3px 8px; background: linear-gradient(135deg, #ecebe3, #d0cfc5); color: #3d3a2a; border-radius: 12px; font-weight: 600; margin-left: 6px; box-shadow: 0 2px 4px rgba(236,235,227,0.3);">Popular</span>'
     if is_best:
-        badges_html += '<span style="display: inline-block; font-size: 9px; padding: 3px 8px; background: linear-gradient(135deg, #059669, #047857); color: white; border-radius: 12px; font-weight: 600; margin-left: 6px; box-shadow: 0 2px 4px rgba(5,150,105,0.3);">🏆 Most Positive</span>'
+        badges_html += '<span style="display: inline-block; font-size: 9px; padding: 3px 8px; background: linear-gradient(135deg, #c8ddc8, #a8c8a8); color: #2d4a2d; border-radius: 12px; font-weight: 600; margin-left: 6px; box-shadow: 0 2px 4px rgba(200,221,200,0.3);">Most Positive</span>'
     elif is_worst:
-        badges_html += '<span style="display: inline-block; font-size: 9px; padding: 3px 8px; background: linear-gradient(135deg, #bb5a38, #a04a2f); color: white; border-radius: 12px; font-weight: 600; margin-left: 6px; box-shadow: 0 2px 4px rgba(187,90,56,0.3);">👎 Most Negative</span>'
+        badges_html += '<span style="display: inline-block; font-size: 9px; padding: 3px 8px; background: linear-gradient(135deg, #d4a89a, #c4988a); color: #4a3a2a; border-radius: 12px; font-weight: 600; margin-left: 6px; box-shadow: 0 2px 4px rgba(212,168,154,0.3);">Most Negative</span>'
 
     # Start card with responsive container, border, and dark blue-gray background
     html = '<div style="margin-bottom: 12px; width: 100%; box-sizing: border-box; padding: 16px; border: 2px solid #134e4a; border-radius: 12px; background: #134e4a; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">'

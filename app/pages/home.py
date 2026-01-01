@@ -6,7 +6,6 @@ from typing import Optional
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-from streamlit_carousel import carousel
 
 from database.bigquery_manager import get_bigquery_manager
 from pipeline.entities import KEY_ISSUES, KEY_PLAYERS
@@ -30,7 +29,7 @@ def get_latest_data_date() -> str | None:
         formatted_date = completed_at.strftime('%B %d, %Y')
         formatted_time = completed_at.strftime('%H:%M:%S')
         
-        return f"*Data as of: 📅 {day_of_week}, {formatted_date}, {formatted_time} GMT*"
+        return f"*Data as of: {day_of_week}, {formatted_date}, {formatted_time} GMT*"
     
     return None
 
@@ -264,7 +263,7 @@ def render_newspaper_layout(
     # LEFT COLUMN: Discussion topics as expanders
     with left_col:
         with st.container(border=False):
-            st.markdown("💬 Discussion Topics")
+            st.markdown("📰 Discussion Topics")
             
             if all_discussions and not discussion_sorted.empty:
                 for entity_name in all_discussions:
@@ -286,8 +285,6 @@ def render_newspaper_layout(
     # MIDDLE COLUMN: Featured topic + carousel
     with middle_col:
         with st.container(border=True):
-            # st.caption("🗞️ Featured Story")
-            
             if all_discussions and not discussion_sorted.empty:
                 # Initialize carousel index in session state
                 carousel_key = "newspaper_carousel_index"
@@ -303,16 +300,15 @@ def render_newspaper_layout(
                 is_worst = (featured_entity_name == discussion_most_negative)
                 
                 # Display featured entity card
-                # st.markdown(f"#### {featured_entity_name}")
                 st.markdown(render_entity_card(featured_entity_name, featured_entity, is_best, is_worst, False), unsafe_allow_html=True)
                 
                 # Sentiment summary
                 sentiment_summary = featured_entity.get('Sentiment Summary')
                 if sentiment_summary and pd.notna(sentiment_summary):
-                    with st.expander("Sentiments", expanded=True):
+                    with st.container(border=True):
                         st.markdown(sentiment_summary)
                 
-                # Carousel navigation (if more than 1 topic)
+                # Carousel navigation
                 if len(all_discussions) > 1:
                     st.markdown("---")
                     col1, col2, col3 = st.columns([1, 2, 1])
@@ -332,7 +328,7 @@ def render_newspaper_layout(
             else:
                 st.info("No discussion topics available")
     
-    # RIGHT COLUMN: Key players/issues as expanders
+    # RIGHT COLUMN: Key players/issues
     with right_col:
         with st.container(border=False):
             st.markdown("🎯 Key Players & Issues")
@@ -466,12 +462,11 @@ def main() -> None:
         st.session_state.home_trends_entities = None
     if "data_source_filter" not in st.session_state:
         st.session_state.data_source_filter = "All Sources"
-    
-    # Top row: Date (left) and Source filter (right)
+
     top_col1, top_col2 = st.columns([3, 1])
     
     with top_col1:
-        # Display latest data date
+        st.markdown("##### 💬 What People are Saying")
         latest_date = get_latest_data_date()
         if latest_date:
             st.caption(latest_date)
@@ -513,9 +508,6 @@ def main() -> None:
     discussion_topics = discussion_topics[discussion_topics['Mentions'] >= 2]
     
     # TODAY'S SENTIMENTS
-    # st.markdown("## 🏠 Today's Pulse")
-    # st.markdown("")
-    # st.markdown("### 💬 What's trending?")
     st.markdown("")
     render_newspaper_layout(
         discussion_topics_df=discussion_topics,
@@ -523,9 +515,9 @@ def main() -> None:
         show_popular_badge=True
     )
     
-    # HISTORICAL VIEW - Below the newspaper grid
+    # HISTORICAL VIEW
     st.markdown("")
-    st.markdown("📈 Historical Trends")
+    st.markdown("##### 📈 Historical Trends")
     
     with st.spinner("Loading trend data..."):
         trends_df = load_sentiment_trends(source_filter=source_param)
