@@ -8,17 +8,19 @@ from pipeline.logger import get_logger
 logger = get_logger("stages.data_processing")
 
 
-def fetch_latest_data(pipeline_run_id: int) -> pd.DataFrame:
+def fetch_latest_data(pipeline_run_id: int, collect_youtube: bool = True, collect_facebook: bool = True) -> pd.DataFrame:
     """Fetch latest scraped data from BigQuery by pipeline run ID.
 
-    Retrieves both YouTube videos and Facebook posts with their comments from 
+    Retrieves YouTube videos and/or Facebook posts with their comments from 
     the database that were scraped during the specified pipeline run.
 
     Args:
         pipeline_run_id: Pipeline run ID to fetch data for.
+        collect_youtube: Whether to fetch YouTube data (default: True).
+        collect_facebook: Whether to fetch Facebook data (default: True).
 
     Returns:
-        pd.DataFrame: DataFrame with combined YouTube and Facebook data.
+        pd.DataFrame: DataFrame with combined YouTube and/or Facebook data.
     """
     logger.info(f"Fetching content data for pipeline run {pipeline_run_id}")
 
@@ -118,15 +120,34 @@ def fetch_latest_data(pipeline_run_id: int) -> pd.DataFrame:
     ORDER BY published_date DESC
     """
     
-    # Execute both queries
-    youtube_df = client.query(youtube_query).to_dataframe()
-    facebook_df = client.query(facebook_query).to_dataframe()
+    # Execute queries based on configuration
+    dataframes = []
     
-    logger.info(f"YouTube: {youtube_df['content_id'].nunique() if not youtube_df.empty else 0} videos, {len(youtube_df)} comments (after deduplication)")
-    logger.info(f"Facebook: {facebook_df['content_id'].nunique() if not facebook_df.empty else 0} posts, {len(facebook_df)} comments (after deduplication)")
+    if collect_youtube:
+        logger.info("Fetching YouTube data...")
+        youtube_df = client.query(youtube_query).to_dataframe()
+        logger.info(f"YouTube: {youtube_df['content_id'].nunique() if not youtube_df.empty else 0} videos, {len(youtube_df)} comments (after deduplication)")
+        dataframes.append(youtube_df)
+    else:
+        logger.info("Skipping YouTube data (collect_youtube=False)")
     
-    # Combine both DataFrames
-    combined_df = pd.concat([youtube_df, facebook_df], ignore_index=True)
+    if collect_facebook:
+        logger.info("Fetching Facebook data...")
+        facebook_df = client.query(facebook_query).to_dataframe()
+        logger.info(f"Facebook: {facebook_df['content_id'].nunique() if not facebook_df.empty else 0} posts, {len(facebook_df)} comments (after deduplication)")
+        dataframes.append(facebook_df)
+    else:
+        logger.info("Skipping Facebook data (collect_facebook=False)")
+    
+    # Combine DataFrames based on what was collected
+    if not dataframes:
+        logger.warning("No data sources enabled! Both collect_youtube and collect_facebook are False")
+        combined_df = pd.DataFrame()
+    elif len(dataframes) == 1:
+        combined_df = dataframes[0]
+    else:
+        combined_df = pd.concat(dataframes, ignore_index=True)
+    
     logger.info(f"Total: {combined_df['content_id'].nunique() if not combined_df.empty else 0} content items, {len(combined_df)} comments")
     
     return combined_df
@@ -245,18 +266,24 @@ def group_comments_by_newsitem(df: pd.DataFrame) -> list[dict]:
     return content_records
 
 
-def process_latest_data(pipeline_run_id: int) -> pd.DataFrame:
-    """Fetch and group latest YouTube video data from the database by pipeline run ID.
+def process_latest_data(pipeline_run_id: int, collect_youtube: bool = True, collect_facebook: bool = True) -> pd.DataFrame:
+    """Fetch and group latest data from the database by pipeline run ID.
     
     Args:
-        pipeline_run_id: Pipeline run ID to fetch data for
+        pipeline_run_id: Pipeline run ID to fetch data for.
+        collect_youtube: Whether to fetch YouTube data (default: True).
+        collect_facebook: Whether to fetch Facebook data (default: True).
     
     Returns:
-        DataFrame with video records and nested comment structure
+        DataFrame with content records and nested comment structure
         Columns: content_id, source_type, source_name, news_title, 
             comments_by_author, comment_count
     """
-    raw_df = fetch_latest_data(pipeline_run_id=pipeline_run_id)
+    raw_df = fetch_latest_data(
+        pipeline_run_id=pipeline_run_id,
+        collect_youtube=collect_youtube,
+        collect_facebook=collect_facebook
+    )
     content_items = group_comments_by_newsitem(raw_df)
     
     # Convert list of dicts to DataFrame
