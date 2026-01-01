@@ -35,23 +35,24 @@ BIGQUERY_IS_PROD: bool = os.getenv("BIGQUERY_IS_PROD", "true").lower() in ("true
 # LLM Provider Configuration
 PROVIDER_BASE_URL: dict[str, str] = {
     "ANTHROPIC": "https://api.anthropic.com/v1/",
-    "GEMINI": "https://generativelanguage.googleapis.com/v1beta/openai/",
+    "GOOGLE": "https://generativelanguage.googleapis.com/v1beta/openai/",
     "GROK": "https://api.x.ai/v1/",
     "NVIDIA": "https://integrate.api.nvidia.com/v1",
     "OPENAI": "https://api.openai.com/v1/"
 }
 
 MODEL_PROVIDER_MAP: dict[str, str] = {
+
+    # Google Gemini models
+    "gemini-3-flash-preview": "GOOGLE",
+    "gemini-3-pro-preview": "GOOGLE",
+    "gemini-2.5-flash-lite": "GOOGLE",
+
     # OpenAI models
     "gpt-5-nano": "OPENAI",
     "gpt-5-mini": "OPENAI",
     "gpt-5.1": "OPENAI",
     "gpt-5.2": "OPENAI",
-
-    # Google Gemini models
-    "gemini-2.5-flash-lite": "GOOGLE",
-    "gemini-3-flash-preview": "GOOGLE",
-    "gemini-3-pro-preview": "GOOGLE",
 
     # Anthropic models
     "claude-haiku-4-5": "ANTHROPIC",
@@ -65,6 +66,9 @@ MODEL_PROVIDER_MAP: dict[str, str] = {
     # NVIDIA open-source models
     "openai/gpt-oss-20b": "NVIDIA"
 }
+
+# Default model for Streamlit app
+DEFAULT_MODEL: str = "gemini-3-flash-preview"
 
 
 

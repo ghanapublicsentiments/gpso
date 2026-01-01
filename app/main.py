@@ -4,7 +4,7 @@ import os
 import streamlit as st
 from streamlit.errors import StreamlitSecretNotFoundError
 
-from config import MODEL_PROVIDER_MAP
+from config import MODEL_PROVIDER_MAP, DEFAULT_MODEL
 
 
 # Load available secrets from st.secrets into os.environ
@@ -60,12 +60,20 @@ def create_model_selector(key: str, help_text: str | None = None) -> str:
     if help_text is None:
         help_text = "Select a model for inference"
     
+    # Find the index of the default model
+    try:
+        default_index = available_models.index(DEFAULT_MODEL)
+    except ValueError:
+        # If default model not in list, use first model
+        default_index = 0
+    
     selected_model = st.selectbox(
         "Select Model:",
         options=available_models,
-        index=0,
+        index=default_index,
         help=help_text,
-        key=key
+        key=key,
+        label_visibility="collapsed"
     )
     
     return selected_model
@@ -158,8 +166,8 @@ with st.sidebar.container(height=310):
 
     elif page.title == "Chat":
         st.page_link("pages/chat.py", label="Chat", icon=":material/chat:")
-        st.write("Chat with an AI assistant for more custom analysis and insights into public sentiments.")
-        
+        st.write("Chat with an AI assistant for custom analysis of public sentiments")
+
         st.session_state.chat_model = create_model_selector(key="chat_model_selector")
         
         selected_model = st.session_state.chat_model
@@ -176,7 +184,7 @@ with st.sidebar.container(height=310):
 
     elif page.title == "Playground":
         st.page_link("pages/playground.py", label="Playground", icon=":material/experiment:")
-        st.write("Simulate public sentiments to news and policy announcements")
+        st.write("Test likely public sentiments to news items")
 
         st.session_state.playground_model = create_model_selector(key="playground_model_selector")
         
