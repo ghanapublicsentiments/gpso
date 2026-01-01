@@ -31,6 +31,7 @@ dependencies = [
 
     # Web Framework
     "streamlit~=1.52.0",
+    "streamlit-carousel~=1.1.2",
 
     # Timezone handling
     "pytz~=2025.2",

@@ -51,6 +51,7 @@ def render_entity_card(
       - 'Avg Sentiment': float in [-1, 1]
       - 'Std Dev': float
       - 'Mentions': int
+      - 'Content Items': int (optional)
       - 'Is New': bool
 
     Args:
@@ -67,9 +68,10 @@ def render_entity_card(
     sentiment_score = float(entity_data.get("Avg Sentiment", 0.0))
     std_dev = float(entity_data.get("Std Dev", 0.0))
     mentions = max(1, int(entity_data.get("Mentions", 1)))
+    content_items = int(entity_data.get("Content Items", 0))
     is_new = bool(entity_data.get("Is New", False))
 
-    entity_name_display = str(entity_name).upper()
+    entity_name_display = str(entity_name)
 
     # Position on scale (0-100%) from [-1, 1]
     position = ((sentiment_score + 1.0) / 2.0) * 100.0
@@ -95,81 +97,106 @@ def render_entity_card(
         right_position = min(100.0, position + 0.25)
 
     marker_color = interpolate_gradient_color(position)
+    
+    # Determine sentiment category and color - Vibrant colors for dark theme
+    if sentiment_score > 0.3:
+        sentiment_category = "Positive"
+        category_color = "#34d399"  # Bright emerald green
+        category_bg = "#065f46"  # Dark green background
+        category_icon = "😊"
+    elif sentiment_score < -0.3:
+        sentiment_category = "Negative"
+        category_color = "#f87171"  # Bright red
+        category_bg = "#7f1d1d"  # Dark red background
+        category_icon = "😟"
+    else:
+        sentiment_category = "Neutral"
+        category_color = "#fbbf24"  # Bright yellow
+        category_bg = "#78350f"  # Dark yellow background
+        category_icon = "😐"
 
     # Badges
     badges_html = ""
     if is_popular and not is_new:
-        badges_html += '<div style="font-size: 10px; padding: 2px 6px; background-color: #c2185b; color: white; border-radius: 4px; font-weight: 600;">⭐ Popular</div>'
+        badges_html += '<span style="display: inline-block; font-size: 9px; padding: 3px 8px; background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; border-radius: 12px; font-weight: 600; margin-left: 6px; box-shadow: 0 2px 4px rgba(236,72,153,0.3);">⭐ Popular</span>'
     if is_best:
-        badges_html += '<div style="font-size: 10px; padding: 2px 6px; background-color: #059669; color: white; border-radius: 4px;">😊 Most Positive</div>'
+        badges_html += '<span style="display: inline-block; font-size: 9px; padding: 3px 8px; background: linear-gradient(135deg, #10b981, #059669); color: white; border-radius: 12px; font-weight: 600; margin-left: 6px; box-shadow: 0 2px 4px rgba(16,185,129,0.3);">🏆 Top</span>'
     elif is_worst:
-        badges_html += '<div style="font-size: 10px; padding: 2px 6px; background-color: #bb5a38; color: white; border-radius: 4px;">😟 Most Negative</div>'
+        badges_html += '<span style="display: inline-block; font-size: 9px; padding: 3px 8px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border-radius: 12px; font-weight: 600; margin-left: 6px; box-shadow: 0 2px 4px rgba(239,68,68,0.3);">⚠️ Low</span>'
 
-    html = '<div style="margin-bottom: 10px;">'
-    html += '<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 8px;">'
-    html += f'<div style="font-size: 14px; font-weight: bold; flex-shrink: 0;">{entity_name_display}</div>'
-    html += f'<div style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">{badges_html}</div>'
+    # Start card with responsive container, border, and black background
+    html = '<div style="margin-bottom: 12px; width: 100%; box-sizing: border-box; padding: 16px; border: 2px solid #374151; border-radius: 12px; background: #1f2937; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">'
+    
+    # Header section with entity name and badges
+    html += '<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px;">'
+    html += f'<div style="font-size: 25px; font-weight: 400; color: #f9fafb; flex-shrink: 1; min-width: 0; word-wrap: break-word;">{entity_name_display}</div>'
+    html += f'<div style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">{badges_html}</div>'
+    html += '</div>'
+    
+    # Stats row (sentiment category, score, mentions, comments)
+    html += f'<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; align-items: center;">'
+    html += f'<div style="display: inline-flex; align-items: center; padding: 4px 10px; background: {category_bg}; border-radius: 16px; border: 1px solid {category_color}20;">'
+    html += f'<span style="font-size: 14px; margin-right: 4px;">{category_icon}</span>'
+    html += f'<span style="font-size: 12px; font-weight: 600; color: {category_color};">{sentiment_category}</span>'
+    html += f'</div>'
+    html += f'<div style="font-size: 12px; color: #d1d5db;"><strong style="color: #f3f4f6;">Score:</strong> {sentiment_score:.2f}</div>'
+    html += f'<div style="font-size: 12px; color: #d1d5db;"><strong style="color: #f3f4f6;">💬 {mentions:,}</strong> mentions</div>'
+    if content_items > 0:
+        html += f'<div style="font-size: 12px; color: #d1d5db;"><strong style="color: #f3f4f6;">📄 {content_items:,}</strong> items</div>'
     html += '</div>'
 
+    # Gradient gauge - Vibrant gradient for dark theme (bright red to yellow to emerald)
     html += (
         '<div style="position: relative; background: linear-gradient(to right, '
-        '#d4a89a 0%, #ecebe3 50%, #c8ddc8 100%); border-radius: 10px; height: 24px; '
-        'border: 1px solid #d3d2ca;">'
+        '#f87171 0%, #fbbf24 50%, #34d399 100%); border-radius: 12px; height: 28px; '
+        'box-shadow: 0 2px 6px rgba(0,0,0,0.3); overflow: visible;">'
     )
 
-    # Confidence interval band
+    # Confidence interval band with enhanced styling
     html += (
         f'<div style="position: absolute; left: {left_position}%; right: {100 - right_position}%; '
-        'top: 50%; transform: translateY(-50%); height: 28px; background-color: '
-        f'{marker_color}; border-radius: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>'
+        'top: 50%; transform: translateY(-50%); height: 32px; background-color: '
+        f'{marker_color}; border-radius: 6px; box-shadow: 0 3px 8px rgba(0,0,0,0.25); opacity: 0.85;"></div>'
     )
 
-    # Mean tick
+    # Mean tick with enhanced styling
     html += (
         f'<div style="position: absolute; left: {position}%; top: 50%; transform: translate(-50%, -50%); '
-        'width: 3px; height: 32px; background-color: '
-        f'{marker_color}; border-radius: 1px; box-shadow: 0 1px 3px rgba(0,0,0,0.5); '
-        'opacity: 0.8; z-index: 1; border: 1px solid rgba(255,255,255,0.3);"></div>'
+        'width: 4px; height: 36px; background-color: '
+        f'{marker_color}; border-radius: 2px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); '
+        'z-index: 2; border: 2px solid white;"></div>'
     )
 
-    # Vertical tick marks at -1, 0, +1
-    html += '<div style="position: absolute; left: 0%; top: 50%; transform: translateY(-50%); width: 1px; height: 16px; background-color: rgba(61,58,42,0.25);"></div>'
-    html += '<div style="position: absolute; left: 50%; top: 50%; transform: translateY(-50%); width: 1px; height: 20px; background-color: rgba(61,58,42,0.35);"></div>'
-    html += '<div style="position: absolute; left: 100%; top: 50%; transform: translateY(-50%); width: 1px; height: 16px; background-color: rgba(61,58,42,0.25);"></div>'
     html += '</div>'
 
-    # Axis labels and score label row
-    html += '<div style="position: relative; display: flex; justify-content: space-between; font-size: 10px; margin-top: 2px;">'
+    # Axis labels with improved typography (light colors for dark background)
+    html += '<div style="position: relative; display: flex; justify-content: space-between; font-size: 10px; margin-top: 6px; padding: 0 4px;">'
 
     # Left label
-    if position < 15:
-        html += '<div style="text-align: left; opacity: 0;">'
-    else:
-        html += '<div style="text-align: left;">'
-    html += '<div style="color: #8b8577; font-weight: 600;">Negative</div>'
-    html += '<div style="color: #8b8577;">-1.0</div>'
+    html += '<div style="text-align: left; min-width: 50px;">'
+    html += '<div style="color: #fca5a5; font-weight: 700; font-size: 9px;">NEGATIVE</div>'
+    html += '<div style="color: #d1d5db; font-size: 9px;">-1.0</div>'
     html += '</div>'
 
     # Center label
-    html += '<div style="text-align: center;">'
-    html += '<div style="color: #8b8577; font-weight: 600;">Neutral</div>'
-    html += '<div style="color: #8b8577;">0</div>'
+    html += '<div style="text-align: center; min-width: 50px;">'
+    html += '<div style="color: #fcd34d; font-weight: 700; font-size: 9px;">NEUTRAL</div>'
+    html += '<div style="color: #d1d5db; font-size: 9px;">0</div>'
     html += '</div>'
 
     # Right label
-    if position > 85:
-        html += '<div style="text-align: right; opacity: 0;">'
-    else:
-        html += '<div style="text-align: right;">'
-    html += '<div style="color: #8b8577; font-weight: 600;">Positive</div>'
-    html += '<div style="color: #8b8577;">+1.0</div>'
+    html += '<div style="text-align: right; min-width: 50px;">'
+    html += '<div style="color: #6ee7b7; font-weight: 700; font-size: 9px;">POSITIVE</div>'
+    html += '<div style="color: #d1d5db; font-size: 9px;">+1.0</div>'
     html += '</div>'
 
-    # Score label anchored at tick
+    # Score label anchored at tick with enhanced styling
     html += (
         f'<span style="position: absolute; left: {position}%; transform: translateX(-50%); '
-        'font-size: 12px; font-weight: bold; color: #3d3a2a; white-space: nowrap; '
-        'top: 50%; margin-top: -6px;">'
+        'font-size: 13px; font-weight: 800; color: white; white-space: nowrap; '
+        f'top: 50%; margin-top: -7px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); '
+        f'background: {marker_color}; padding: 2px 8px; border-radius: 8px; '
+        'border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">'
         f'{sentiment_score:.2f}</span>'
     )
 

@@ -6,7 +6,6 @@ from typing import Optional
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-from streamlit_carousel import carousel
 
 from database.bigquery_manager import get_bigquery_manager
 from pipeline.entities import KEY_ISSUES, KEY_PLAYERS
@@ -280,138 +279,6 @@ def color_sentiment_rows(row: pd.Series) -> list[str]:
         return ['background-color: #FFFFE0'] * len(row)  # Light yellow
 
 
-def render_newspaper_layout(
-    discussion_topics_df: pd.DataFrame,
-    tracked_entities_df: pd.DataFrame,
-    show_popular_badge: bool = False
-) -> None:
-    """
-    Render a 3-column newspaper layout:
-    - Left: Discussion topics as expanders (each shows entity card)
-    - Middle: Featured topic card + carousel to switch topics
-    - Right: Key players/issues as expanders (each shows entity card)
-    
-    Args:
-        discussion_topics_df: DataFrame of discussion topics.
-        tracked_entities_df: DataFrame of tracked entities (players/issues).
-        show_popular_badge: Whether to show popular badge.
-    """
-    # Sort dataframes
-    discussion_sorted = discussion_topics_df.sort_values('Mentions', ascending=False) if not discussion_topics_df.empty else pd.DataFrame()
-    tracked_sorted = tracked_entities_df.sort_values('Mentions', ascending=False) if not tracked_entities_df.empty else pd.DataFrame()
-    
-    # Get all entities (no multiselect filtering)
-    all_discussions = discussion_sorted['Entity'].tolist() if not discussion_sorted.empty else []
-    all_tracked = tracked_sorted['Entity'].tolist() if not tracked_sorted.empty else []
-    
-    # Get badge entities
-    if not discussion_sorted.empty:
-        discussion_most_negative = discussion_sorted.loc[discussion_sorted['Avg Sentiment'].idxmin(), 'Entity']
-        discussion_most_positive = discussion_sorted.loc[discussion_sorted['Avg Sentiment'].idxmax(), 'Entity']
-    
-    if not tracked_sorted.empty:
-        tracked_most_negative = tracked_sorted.loc[tracked_sorted['Avg Sentiment'].idxmin(), 'Entity']
-        tracked_most_positive = tracked_sorted.loc[tracked_sorted['Avg Sentiment'].idxmax(), 'Entity']
-        tracked_top_3 = tracked_sorted.head(3)['Entity'].tolist() if show_popular_badge else []
-    
-    # Create 3-column layout with equal height containers
-    left_col, middle_col, right_col = st.columns([1, 2, 1], gap="medium")
-    
-    # LEFT COLUMN: Discussion topics as expanders
-    with left_col:
-        with st.container(border=False):
-            # st.caption("💬 Discussion Topics")
-            
-            if all_discussions and not discussion_sorted.empty:
-                for entity_name in all_discussions:
-                    entity = discussion_sorted[discussion_sorted['Entity'] == entity_name].iloc[0]
-                    is_best = (entity_name == discussion_most_positive)
-                    is_worst = (entity_name == discussion_most_negative)
-                    
-                    with st.expander(entity_name, expanded=False):
-                        st.markdown(render_entity_card(entity_name, entity, is_best, is_worst, False), unsafe_allow_html=True)
-                        
-                        sentiment_summary = entity.get('Sentiment Summary')
-                        if sentiment_summary and pd.notna(sentiment_summary):
-                            st.markdown("---")
-                            st.markdown("**Summary:**")
-                            st.markdown(sentiment_summary)
-            else:
-                st.info("No discussion topics available")
-    
-    # MIDDLE COLUMN: Featured topic + carousel
-    with middle_col:
-        with st.container(border=True):
-            # st.caption("🗞️ Featured Story")
-            
-            if all_discussions and not discussion_sorted.empty:
-                # Initialize carousel index in session state
-                carousel_key = "newspaper_carousel_index"
-                if carousel_key not in st.session_state:
-                    st.session_state[carousel_key] = 0
-                
-                # Current featured topic
-                current_idx = st.session_state[carousel_key] % len(all_discussions)
-                featured_entity_name = all_discussions[current_idx]
-                featured_entity = discussion_sorted[discussion_sorted['Entity'] == featured_entity_name].iloc[0]
-                
-                is_best = (featured_entity_name == discussion_most_positive)
-                is_worst = (featured_entity_name == discussion_most_negative)
-                
-                # Display featured entity card
-                # st.markdown(f"#### {featured_entity_name}")
-                st.markdown(render_entity_card(featured_entity_name, featured_entity, is_best, is_worst, False), unsafe_allow_html=True)
-                
-                # Sentiment summary
-                sentiment_summary = featured_entity.get('Sentiment Summary')
-                if sentiment_summary and pd.notna(sentiment_summary):
-                    with st.expander("Sentiments", expanded=True):
-                        st.markdown(sentiment_summary)
-                
-                # Carousel navigation (if more than 1 topic)
-                if len(all_discussions) > 1:
-                    st.markdown("---")
-                    col1, col2, col3 = st.columns([1, 2, 1])
-                    
-                    with col1:
-                        if st.button("◀ Previous", key=f"{carousel_key}_prev", use_container_width=True):
-                            st.session_state[carousel_key] = (current_idx - 1) % len(all_discussions)
-                            st.rerun()
-                    
-                    with col2:
-                        st.markdown(f"<div style='text-align: center; padding: 8px;'>{current_idx + 1} of {len(all_discussions)}</div>", unsafe_allow_html=True)
-                    
-                    with col3:
-                        if st.button("Next ▶", key=f"{carousel_key}_next", use_container_width=True):
-                            st.session_state[carousel_key] = (current_idx + 1) % len(all_discussions)
-                            st.rerun()
-            else:
-                st.info("No discussion topics available")
-    
-    # RIGHT COLUMN: Key players/issues as expanders
-    with right_col:
-        with st.container(border=False):
-            # st.caption("🎯 Key Players & Issues")
-            
-            if all_tracked and not tracked_sorted.empty:
-                for entity_name in all_tracked:
-                    entity = tracked_sorted[tracked_sorted['Entity'] == entity_name].iloc[0]
-                    is_best = (entity_name == tracked_most_positive)
-                    is_worst = (entity_name == tracked_most_negative)
-                    is_popular = (entity_name in tracked_top_3) if show_popular_badge else False
-                    
-                    with st.expander(f"📌 {entity_name}", expanded=False):
-                        st.markdown(render_entity_card(entity_name, entity, is_best, is_worst, is_popular), unsafe_allow_html=True)
-                        
-                        sentiment_summary = entity.get('Sentiment Summary')
-                        if sentiment_summary and pd.notna(sentiment_summary):
-                            st.markdown("---")
-                            st.markdown("**Summary:**")
-                            st.markdown(sentiment_summary)
-            else:
-                st.info("No key players/issues available")
-
-
 def render_entity_tab(
     entities_df: pd.DataFrame,
     session_state_key: str,
@@ -523,27 +390,16 @@ def main() -> None:
     if "data_source_filter" not in st.session_state:
         st.session_state.data_source_filter = "All Sources"
     
-    # Top row: Date (left) and Source filter (right)
-    top_col1, top_col2 = st.columns([3, 1])
-    
-    with top_col1:
-        # Display latest data date
-        latest_date = get_latest_data_date()
-        if latest_date:
-            st.caption(latest_date)
-    
-    with top_col2:
-        # Add source filter dropdown
-        source_options = ["All Sources", "YouTube Only", "Facebook Only"]
-        selected_source = st.selectbox(
-            "Data source:",
-            options=source_options,
-            index=source_options.index(st.session_state.data_source_filter),
-            key="source_filter_select",
-            help="Filter sentiment data by source",
-            label_visibility="collapsed"
-        )
-        st.session_state.data_source_filter = selected_source
+    # Add source filter dropdown at the top
+    source_options = ["All Sources", "YouTube Only", "Facebook Only"]
+    selected_source = st.selectbox(
+        "Choose data source:",
+        options=source_options,
+        index=source_options.index(st.session_state.data_source_filter),
+        key="source_filter_select",
+        help="Filter sentiment data by source (YouTube videos or Facebook posts)"
+    )
+    st.session_state.data_source_filter = selected_source
     
     # Map UI selection to filter parameter
     source_param = None
@@ -568,58 +424,74 @@ def main() -> None:
     tracked_entities = tracked_entities[tracked_entities['Mentions'] >= 2]
     discussion_topics = discussion_topics[discussion_topics['Mentions'] >= 2]
     
-    # TODAY'S PULSE - Newspaper layout (no tabs)
-    # st.markdown("## 🏠 Today's Pulse")
-    # st.markdown("")
-    # st.markdown("### 💬 What's trending?")
-    st.markdown("")
-    render_newspaper_layout(
-        discussion_topics_df=discussion_topics,
-        tracked_entities_df=tracked_entities,
-        show_popular_badge=True
-    )
+    # Create tabs
+    tab1, tab2, tab3 = st.tabs([
+        "💬 What's Trending?",
+        "🎯 Key Players & Issues",
+       "📈 Historical View"
+    ])
     
-    # HISTORICAL VIEW - Below the newspaper grid
-    st.markdown("---")
-    st.markdown("## 📈 Historical Trends")
-    
-    with st.spinner("Loading trend data..."):
-        trends_df = load_sentiment_trends(source_filter=source_param)
-    
-    if not trends_df.empty:
-        # Get unique entities
-        all_entities = sorted(trends_df['entity'].unique())
-        
-        # Determine default selection: use session state if available, otherwise top 5
-        top_5_entities = all_entities[:5] if len(all_entities) >= 5 else all_entities
-        if st.session_state.home_trends_entities is None:
-            default_selection = top_5_entities
-        else:
-            # Use cached selection, but filter to only valid entities still in data
-            valid_cached = [
-                e for e in st.session_state.home_trends_entities
-                if e in all_entities
-            ]
-            default_selection = valid_cached if valid_cached else top_5_entities
-        
-        # Entity selector
-        selected_entities = st.multiselect(
-            "Select key players or issues to plot:",
-            options=all_entities,
-            default=default_selection,
-            help="Choose which entities to display on the chart",
-            key="trends_entities_select"
+    # TAB 1: TODAY'S SENTIMENTS (DISCUSSION TOPICS ONLY)
+    with tab1:
+        render_entity_tab(
+            entities_df=discussion_topics,
+            session_state_key="home_discussion_entities",
+            multiselect_key="discussion_entities_select",
+            label="Select discussion topics:",
+            help_text="Preselected: Top 6 discussion topics",
+            show_popular_badge=False
         )
+    
+    # TAB 2: RECURRING ENTITIES (TRACKED ENTITIES)
+    with tab2:
+        render_entity_tab(
+            entities_df=tracked_entities,
+            session_state_key="home_tracked_entities",
+            multiselect_key="tracked_entities_select",
+            label="Select key players or issues:",
+            help_text="Preselected: Top 6 tracked entities",
+            show_popular_badge=True
+        )
+    
+    # TAB 3: TRENDS OVER TIME
+    with tab3:
+        with st.spinner("Loading trend data..."):
+            trends_df = load_sentiment_trends(source_filter=source_param)
         
-        # Update session state with current selection
-        st.session_state.home_trends_entities = selected_entities
-        
-        if selected_entities:
-            plot_sentiment_trends(trends_df, selected_entities)
+        if not trends_df.empty:
+            # Get unique entities
+            all_entities = sorted(trends_df['entity'].unique())
+            
+            # Determine default selection: use session state if available, otherwise top 5
+            top_5_entities = all_entities[:5] if len(all_entities) >= 5 else all_entities
+            if st.session_state.home_trends_entities is None:
+                default_selection = top_5_entities
+            else:
+                # Use cached selection, but filter to only valid entities still in data
+                valid_cached = [
+                    e for e in st.session_state.home_trends_entities
+                    if e in all_entities
+                ]
+                default_selection = valid_cached if valid_cached else top_5_entities
+            
+            # Entity selector
+            selected_entities = st.multiselect(
+                "Select key players or issues to plot:",
+                options=all_entities,
+                default=default_selection,
+                help="Choose which entities to display on the chart",
+                key="trends_entities_select"
+            )
+            
+            # Update session state with current selection
+            st.session_state.home_trends_entities = selected_entities
+            
+            if selected_entities:
+                plot_sentiment_trends(trends_df, selected_entities)
+            else:
+                st.info("Please select at least one entity to plot")
         else:
-            st.info("Please select at least one entity to plot")
-    else:
-        st.warning("Not enough data for time-series analysis. Run sentiment analysis to collect more data.")
+            st.warning("Not enough data for time-series analysis. Run sentiment analysis to collect more data.")
 
 if __name__ == "__main__":
     main()
