@@ -257,10 +257,10 @@ def render_newspaper_layout(
         tracked_most_positive = tracked_sorted.loc[tracked_sorted['Avg Sentiment'].idxmax(), 'Entity']
         tracked_top_3 = tracked_sorted.head(3)['Entity'].tolist() if show_popular_badge else []
     
-    # Create 3-column layout with equal height containers
+    # Create 3-column layout
     left_col, middle_col, right_col = st.columns([1, 2, 1], gap="medium")
     
-    # LEFT COLUMN: Discussion topics as expanders
+    # LEFT COLUMN: Discussion topics
     with left_col:
         with st.container(border=False):
             st.markdown("📰 Discussion Topics")
@@ -507,11 +507,16 @@ def main() -> None:
     tracked_entities = tracked_entities[tracked_entities['Mentions'] >= 2]
     discussion_topics = discussion_topics[discussion_topics['Mentions'] >= 2]
     
+    # Get top 5 tracked entities by mentions
+    tracked_entities_sorted = tracked_entities.sort_values('Mentions', ascending=False)
+    top_5_tracked = tracked_entities_sorted.head(5)
+    top_5_entity_names = top_5_tracked['Entity'].tolist()
+    
     # TODAY'S SENTIMENTS
     st.markdown("")
     render_newspaper_layout(
         discussion_topics_df=discussion_topics,
-        tracked_entities_df=tracked_entities,
+        tracked_entities_df=top_5_tracked,
         show_popular_badge=True
     )
     
@@ -526,17 +531,24 @@ def main() -> None:
         # Get unique entities
         all_entities = sorted(trends_df['entity'].unique())
         
-        # Determine default selection: use session state if available, otherwise top 5
-        top_5_entities = all_entities[:5] if len(all_entities) >= 5 else all_entities
-        if st.session_state.home_trends_entities is None:
-            default_selection = top_5_entities
+        # Determine default selection: use top 5 tracked entities from current data
+        if top_5_entity_names:
+            # Filter top 5 to only those present in trends data
+            default_selection = [e for e in top_5_entity_names if e in all_entities]
+            # If none of the top 5 are in trends, fall back to first 5 from trends
+            if not default_selection:
+                default_selection = all_entities[:5] if len(all_entities) >= 5 else all_entities
         else:
-            # Use cached selection, but filter to only valid entities still in data
+            default_selection = all_entities[:5] if len(all_entities) >= 5 else all_entities
+        
+        # Override with session state if available
+        if st.session_state.home_trends_entities is not None:
             valid_cached = [
                 e for e in st.session_state.home_trends_entities
                 if e in all_entities
             ]
-            default_selection = valid_cached if valid_cached else top_5_entities
+            if valid_cached:
+                default_selection = valid_cached
         
         # Entity selector
         selected_entities = st.multiselect(
