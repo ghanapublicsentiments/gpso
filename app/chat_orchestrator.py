@@ -109,8 +109,20 @@ def execute_tool_calls(
     
     Returns:
         tuple[str, list[dict]]: Tuple of (final_response_text, updated_messages).
+        
+    Raises:
+        ValueError: If there's a configuration error (API key missing, invalid model, etc.)
+        ConnectionError: If there's a network connectivity issue.
     """
-    openai_client = get_client(selected_model, api_key=api_key)
+    try:
+        openai_client = get_client(selected_model, api_key=api_key)
+    except ValueError as e:
+        # Re-raise ValueError so it can be caught in the chat UI with specific handling
+        raise
+    except Exception as e:
+        # Convert other client creation errors to ConnectionError
+        raise ConnectionError(f"Failed to initialize AI client: {str(e)}")
+    
     tools = AVAILABLE_TOOLS
     
     iteration = 0
@@ -136,45 +148,26 @@ def execute_tool_calls(
             assistant_message = response.choices[0].message
         except Exception as e:
             error_type = type(e).__name__
-            error_msg = str(e)
+            error_msg = str(e).lower()
             
             # Provide user-friendly error message based on error type
             if "APIConnectionError" in error_type or "ConnectionError" in error_type:
-                friendly_msg = """
-                I'm having trouble connecting to the AI service. 
-                Please check your internet connection and try again.
-                """
-            elif "APITimeoutError" in error_type or "timeout" in error_msg.lower():
-                friendly_msg = """
-                The AI service is taking too long to respond. 
-                Please try again in a moment.
-                """
-            elif "RateLimitError" in error_type or "rate limit" in error_msg.lower():
-                friendly_msg = """
-                The AI service is currently busy. 
-                Please wait a moment and try again.
-                """
-            elif "AuthenticationError" in error_type or "authentication" in error_msg.lower():
-                friendly_msg = """
-                There's an authentication issue with the AI service. 
-                Please check your API key configuration.
-                """
+                friendly_msg = "I'm having trouble connecting to the AI service. Please check your internet connection and try again."
+            elif "APITimeoutError" in error_type or "timeout" in error_msg:
+                friendly_msg = "The AI service took too long to respond. Please wait a moment and try again."
+            elif "RateLimitError" in error_type or "rate limit" in error_msg:
+                friendly_msg = "We've hit the rate limit from too many requests. Please wait a few moments before trying again."
+            elif "AuthenticationError" in error_type or "authentication" in error_msg or "unauthorized" in error_msg:
+                friendly_msg = "Your API key seems to be invalid or expired. Please check your API key configuration."
             elif "InvalidRequestError" in error_type:
-                friendly_msg = f"""
-                The request to the AI service was invalid. 
-                This might be due to the model configuration. 
-                Details: {error_msg[:200]}
-                """
+                friendly_msg = "The request was rejected by the AI service. Try selecting a different model or refreshing the page."
             else:
-                friendly_msg = f"""
-                I encountered an unexpected error: {error_type}. 
-                Please try again or rephrase your question.
-                """
+                friendly_msg = "Something went wrong while processing your request. Please try again or rephrase your question."
             
             # Add error message to conversation
             error_response = {
                 "role": "assistant",
-                "content": f"❌ {friendly_msg}\n\nIf this issue persists, please contact support."
+                "content": friendly_msg
             }
             updated_messages.append(error_response)
             

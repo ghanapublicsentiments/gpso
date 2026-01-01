@@ -198,17 +198,75 @@ if prompt := st.chat_input("What would you like to know?"):
             # Update session state with all new messages (including tool interactions)
             st.session_state.messages = updated_messages
             
+        except ValueError as e:
+            # Handle configuration errors (API keys, invalid models, etc.)
+            error_str = str(e)
+            
+            if "API key" in error_str or "not found" in error_str:
+                # API key configuration error
+                error_message = """
+                    I'm sorry, but I can't connect right now because the API key for the selected model isn't configured. 
+
+                    Please paste your API key in the textbox in the sidebar's Playground section.
+                """.strip()
+            elif "Model" in error_str and "not found" in error_str:
+                # Invalid model error
+                error_message = """
+                    Hmm, the selected model doesn't seem to be available. 
+                    Try selecting a different model from the playground, or double-check that the model name is correct.
+                """.strip()
+            else:
+                # Other ValueError
+                error_message = """
+                    I ran into a configuration issue. Try refreshing the page, selecting a different model, or checking your settings.
+                """.strip()
+            
+            st.error(error_message)
+            
+            # Add error to message history so user can see it
+            error_msg = {
+                "role": "assistant",
+                "content": error_message
+            }
+            st.session_state.messages.append(error_msg)
+            
+        except ConnectionError as e:
+            # Handle network/connection errors
+            error_message = """
+                I'm having trouble connecting to the AI service. Please check your internet connection and try again in a few moments. If you're behind a firewall, that might be blocking the connection.
+            """.strip()
+            st.error(error_message)
+            
+            error_msg = {
+                "role": "assistant",
+                "content": error_message
+            }
+            st.session_state.messages.append(error_msg)
+            
         except Exception as e:
             # Catch-all for any unexpected errors
-            error_message = f"""
-            ❌ An unexpected error occurred: {type(e).__name__}
-                Please try again. If the problem persists, try:
-                - Refreshing the page
-                - Rephrasing your question
-                - Checking your connection
-
-                Error details: {str(e)[:200]}
-            """.strip()
+            error_str = str(e).lower()
+            
+            # Try to provide context-specific guidance
+            if "timeout" in error_str:
+                error_message = """
+                    The AI service took too long to respond. Wait a moment and try again, or try asking a simpler question.
+                """.strip()
+            elif "rate limit" in error_str:
+                error_message = """
+                    Looks like we've hit the rate limit from too many requests. Wait a few moments before trying again. 
+                    If this happens often, you might want to consider upgrading your API plan.
+                """.strip()
+            elif "authentication" in error_str or "unauthorized" in error_str:
+                error_message = """
+                    Your API key seems to be invalid or expired. Please check that it's correct and hasn't expired.
+                """.strip()
+            else:
+                error_message = """
+                    Something unexpected went wrong while processing your request. Try refreshing the page and asking again. 
+                    If the problem keeps happening, please contact support.
+                """.strip()
+            
             st.error(error_message)
             
             # Add error to message history so user can see it
