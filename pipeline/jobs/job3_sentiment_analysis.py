@@ -54,7 +54,11 @@ def main():
     }
     
     logger.info("Fetching latest data from database...")
-    content_items = process_latest_data(pipeline_run_id=pipeline_run_id)
+    content_items = process_latest_data(
+        pipeline_run_id=pipeline_run_id,
+        collect_youtube=config.data_collection.collect_youtube,
+        collect_facebook=config.data_collection.collect_facebook
+    )
     logger.info(f"Retrieved {len(content_items)} unique content items")
     
     logger.info("Loading entity detection results from checkpoint...")

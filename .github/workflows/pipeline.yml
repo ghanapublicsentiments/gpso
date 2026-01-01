@@ -56,6 +56,10 @@ jobs:
       
       - name: Configure BigQuery credentials
         run: |
+          if [ -z '${{ secrets.BIGQUERY_CREDENTIALS }}' ]; then
+            echo "Error: BIGQUERY_CREDENTIALS secret is not set"
+            exit 1
+          fi
           echo '${{ secrets.BIGQUERY_CREDENTIALS }}' > bigquery-credentials.json
           chmod 600 bigquery-credentials.json
       
@@ -110,6 +114,10 @@ jobs:
       
       - name: Configure BigQuery credentials
         run: |
+          if [ -z '${{ secrets.BIGQUERY_CREDENTIALS }}' ]; then
+            echo "Error: BIGQUERY_CREDENTIALS secret is not set"
+            exit 1
+          fi
           echo '${{ secrets.BIGQUERY_CREDENTIALS }}' > bigquery-credentials.json
           chmod 600 bigquery-credentials.json
       
@@ -155,6 +163,10 @@ jobs:
       
       - name: Configure BigQuery credentials
         run: |
+          if [ -z '${{ secrets.BIGQUERY_CREDENTIALS }}' ]; then
+            echo "Error: BIGQUERY_CREDENTIALS secret is not set"
+            exit 1
+          fi
           echo '${{ secrets.BIGQUERY_CREDENTIALS }}' > bigquery-credentials.json
           chmod 600 bigquery-credentials.json
       
@@ -198,6 +210,10 @@ jobs:
       
       - name: Configure BigQuery credentials
         run: |
+          if [ -z '${{ secrets.BIGQUERY_CREDENTIALS }}' ]; then
+            echo "Error: BIGQUERY_CREDENTIALS secret is not set"
+            exit 1
+          fi
           echo '${{ secrets.BIGQUERY_CREDENTIALS }}' > bigquery-credentials.json
           chmod 600 bigquery-credentials.json
       
@@ -241,6 +257,10 @@ jobs:
       
       - name: Configure BigQuery credentials
         run: |
+          if [ -z '${{ secrets.BIGQUERY_CREDENTIALS }}' ]; then
+            echo "Error: BIGQUERY_CREDENTIALS secret is not set"
+            exit 1
+          fi
           echo '${{ secrets.BIGQUERY_CREDENTIALS }}' > bigquery-credentials.json
           chmod 600 bigquery-credentials.json
       
@@ -284,6 +304,10 @@ jobs:
       
       - name: Configure BigQuery credentials
         run: |
+          if [ -z '${{ secrets.BIGQUERY_CREDENTIALS }}' ]; then
+            echo "Error: BIGQUERY_CREDENTIALS secret is not set"
+            exit 1
+          fi
           echo '${{ secrets.BIGQUERY_CREDENTIALS }}' > bigquery-credentials.json
           chmod 600 bigquery-credentials.json
       
