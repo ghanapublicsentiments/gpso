@@ -4,7 +4,7 @@ import os
 import streamlit as st
 from streamlit.errors import StreamlitSecretNotFoundError
 
-from config import MODEL_PROVIDER_MAP
+from config import MODEL_PROVIDER_MAP, DEFAULT_MODEL
 
 
 # Load available secrets from st.secrets into os.environ
@@ -60,10 +60,17 @@ def create_model_selector(key: str, help_text: str | None = None) -> str:
     if help_text is None:
         help_text = "Select a model for inference"
     
+    # Find the index of the default model
+    try:
+        default_index = available_models.index(DEFAULT_MODEL)
+    except ValueError:
+        # If default model not in list, use first model
+        default_index = 0
+    
     selected_model = st.selectbox(
         "Select Model:",
         options=available_models,
-        index=0,
+        index=default_index,
         help=help_text,
         key=key,
         label_visibility="collapsed"
