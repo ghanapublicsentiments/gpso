@@ -9,7 +9,6 @@ from datetime import datetime, timezone
 from typing import Any, Optional
 
 import numpy as np
-import streamlit as st
 from google.cloud import bigquery
 
 from config import BIGQUERY_DATASET, BIGQUERY_IS_PROD
@@ -690,6 +689,7 @@ def get_bigquery_manager() -> BigQueryManager:
     """
     # Check if running in Streamlit with in-memory credentials
     try:
+        import streamlit as st
         if hasattr(st, 'session_state') and 'gcp_credentials' in st.session_state:
             return BigQueryManager(creds_dict=st.session_state['gcp_credentials'])
     except (ImportError, RuntimeError):
