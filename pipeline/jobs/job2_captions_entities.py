@@ -80,7 +80,7 @@ def main():
         logger.info("="*60)
         logger.info("STAGE 1: HOT TOPICS IDENTIFICATION")
         logger.info("="*60)
-        logger.info(f"Identifying top 8 hot topics using {config.caption.model}...")
+        logger.info(f"Identifying top 5 hot topics using {config.caption.model}...")
         df_topics, usage = identify_hot_topics(
             content_items, 
             model=config.caption.model

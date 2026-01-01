@@ -17,23 +17,20 @@ class TopicMapping(BaseModel):
 
 
 class HotTopics(BaseModel):
-    """Model for the top 8 most discussed topics mapped to their content IDs."""
+    """Model for the top 5 most discussed topics mapped to their content IDs."""
     
     topic_1: TopicMapping = Field(..., description="Most discussed topic and its content_ids")
     topic_2: TopicMapping = Field(..., description="Second most discussed topic and its content_ids")
     topic_3: TopicMapping = Field(..., description="Third most discussed topic and its content_ids")
     topic_4: TopicMapping = Field(..., description="Fourth most discussed topic and its content_ids")
     topic_5: TopicMapping = Field(..., description="Fifth most discussed topic and its content_ids")
-    topic_6: TopicMapping = Field(..., description="Sixth most discussed topic and its content_ids")
-    topic_7: TopicMapping = Field(..., description="Seventh most discussed topic and its content_ids")
-    topic_8: TopicMapping = Field(..., description="Eighth most discussed topic and its content_ids")
 
 
 def identify_hot_topics(
     content_items: pd.DataFrame, 
     model: str = "gpt-4o-mini"
 ) -> tuple[pd.DataFrame, dict[str, int]]:
-    """Identify the top 8 most discussed topics from public comments and map them to content IDs.
+    """Identify the top 5 most discussed topics from public comments and map them to content IDs.
     
     Args:
         content_items: DataFrame of news records with comments_by_author structure.
@@ -50,7 +47,7 @@ def identify_hot_topics(
     news_context = df_news.to_json(orient='records', indent=2)
     
     prompt = f"""
-    Identify the top 8 topics most discussed in the following public comments, and for each topic, 
+    Identify the top 5 topics most discussed in the following public comments, and for each topic, 
     identify which content items (by content_id) discuss that topic.
 
     PUBLIC COMMENTS DATA:
@@ -91,9 +88,6 @@ def identify_hot_topics(
             parsed.topic_3.topic: parsed.topic_3.content_ids,
             parsed.topic_4.topic: parsed.topic_4.content_ids,
             parsed.topic_5.topic: parsed.topic_5.content_ids,
-            parsed.topic_6.topic: parsed.topic_6.content_ids,
-            parsed.topic_7.topic: parsed.topic_7.content_ids,
-            parsed.topic_8.topic: parsed.topic_8.content_ids,
         }
         
         logger.info(f"Hot topics identified successfully (Tokens: {usage['input_tokens']} in, {usage['output_tokens']} out)")
