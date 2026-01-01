@@ -203,62 +203,6 @@ def plot_sentiment_trends(df: pd.DataFrame, selected_entities: list) -> None:
     )
     
     st.plotly_chart(fig, use_container_width=True, theme=None)
-    
-    # Add expandable section with detailed summaries table
-    with st.expander("📋 View Detailed Summaries", expanded=False):
-        # Entity selector dropdown
-        selected_summary_entity = st.selectbox(
-            "Select entity to view summaries:",
-            options=selected_entities,
-            key="summary_entity_selector"
-        )
-        
-        # Filter data for selected entity
-        summary_df = df_filtered[df_filtered['entity'] == selected_summary_entity].copy()
-
-        # Sort by date descending
-        summary_df = summary_df.sort_values('date', ascending=False)
-        
-        if not summary_df.empty:
-            # Prepare table data with formatted columns
-            table_data = summary_df.copy()
-            
-            # Format date as string
-            table_data['Date'] = table_data['date'].astype(str)
-            
-            # Select and rename columns for display
-            display_df = table_data[[
-                'Date', 'avg_sentiment', 'mentions', 'unique_authors', 'sentiment_summary'
-            ]].rename(columns={
-                'avg_sentiment': 'Sentiment Score',
-                'mentions': 'Mentions',
-                'unique_authors': 'Unique Authors',
-                'sentiment_summary': 'Summary'
-            })
-            
-            # Display the table
-            st.dataframe(
-                display_df,
-                use_container_width=True,
-                hide_index=True,
-                column_config={
-                    "Date": st.column_config.TextColumn("Date", width="small"),
-                    "Sentiment Score": st.column_config.NumberColumn(
-                        "Sentiment Score",
-                        format="%.3f",
-                        width="small"
-                    ),
-                    "Mentions": st.column_config.NumberColumn("Mentions", width="small"),
-                    "Unique Authors": st.column_config.NumberColumn(
-                        "Unique Authors",
-                        help="Cumulative count of unique authors mentioning this entity up to this date",
-                        width="small"
-                    ),
-                    "Summary": st.column_config.TextColumn("Summary", width="large")
-                }
-            )
-        else:
-            st.info("No summary data available for the selected entity.")
 
 
 def color_sentiment_rows(row: pd.Series) -> list[str]:
@@ -320,7 +264,7 @@ def render_newspaper_layout(
     # LEFT COLUMN: Discussion topics as expanders
     with left_col:
         with st.container(border=False):
-            # st.caption("💬 Discussion Topics")
+            st.markdown("💬 Discussion Topics")
             
             if all_discussions and not discussion_sorted.empty:
                 for entity_name in all_discussions:
@@ -391,7 +335,7 @@ def render_newspaper_layout(
     # RIGHT COLUMN: Key players/issues as expanders
     with right_col:
         with st.container(border=False):
-            # st.caption("🎯 Key Players & Issues")
+            st.markdown("🎯 Key Players & Issues")
             
             if all_tracked and not tracked_sorted.empty:
                 for entity_name in all_tracked:
@@ -400,7 +344,7 @@ def render_newspaper_layout(
                     is_worst = (entity_name == tracked_most_negative)
                     is_popular = (entity_name in tracked_top_3) if show_popular_badge else False
                     
-                    with st.expander(f"📌 {entity_name}", expanded=False):
+                    with st.expander(entity_name, expanded=False):
                         st.markdown(render_entity_card(entity_name, entity, is_best, is_worst, is_popular), unsafe_allow_html=True)
                         
                         sentiment_summary = entity.get('Sentiment Summary')
@@ -568,7 +512,7 @@ def main() -> None:
     tracked_entities = tracked_entities[tracked_entities['Mentions'] >= 2]
     discussion_topics = discussion_topics[discussion_topics['Mentions'] >= 2]
     
-    # TODAY'S PULSE - Newspaper layout (no tabs)
+    # TODAY'S SENTIMENTS
     # st.markdown("## 🏠 Today's Pulse")
     # st.markdown("")
     # st.markdown("### 💬 What's trending?")
@@ -580,8 +524,8 @@ def main() -> None:
     )
     
     # HISTORICAL VIEW - Below the newspaper grid
-    st.markdown("---")
-    st.markdown("## 📈 Historical Trends")
+    st.markdown("")
+    st.markdown("📈 Historical Trends")
     
     with st.spinner("Loading trend data..."):
         trends_df = load_sentiment_trends(source_filter=source_param)

@@ -98,34 +98,34 @@ def render_entity_card(
 
     marker_color = interpolate_gradient_color(position)
     
-    # Determine sentiment category and color - Vibrant colors for dark theme
+    # Determine sentiment category and color - App theme colors with dark backgrounds
     if sentiment_score > 0.3:
         sentiment_category = "Positive"
-        category_color = "#34d399"  # Bright emerald green
-        category_bg = "#065f46"  # Dark green background
+        category_color = "#059669"  # Green from app's chartCategoricalColors
+        category_bg = "#064e3b"  # Dark green background for dark theme
         category_icon = "😊"
     elif sentiment_score < -0.3:
         sentiment_category = "Negative"
-        category_color = "#f87171"  # Bright red
-        category_bg = "#7f1d1d"  # Dark red background
+        category_color = "#bb5a38"  # Primary color from app theme (rust)
+        category_bg = "#78350f"  # Dark brown background
         category_icon = "😟"
     else:
         sentiment_category = "Neutral"
-        category_color = "#fbbf24"  # Bright yellow
-        category_bg = "#78350f"  # Dark yellow background
+        category_color = "#fbbf24"  # Yellow from app's chartCategoricalColors
+        category_bg = "#713f12"  # Dark yellow background
         category_icon = "😐"
 
-    # Badges
+    # Badges - using app theme colors
     badges_html = ""
     if is_popular and not is_new:
-        badges_html += '<span style="display: inline-block; font-size: 9px; padding: 3px 8px; background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; border-radius: 12px; font-weight: 600; margin-left: 6px; box-shadow: 0 2px 4px rgba(236,72,153,0.3);">⭐ Popular</span>'
+        badges_html += '<span style="display: inline-block; font-size: 9px; padding: 3px 8px; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; border-radius: 12px; font-weight: 600; margin-left: 6px; box-shadow: 0 2px 4px rgba(14,165,233,0.3);">⭐ Popular</span>'
     if is_best:
-        badges_html += '<span style="display: inline-block; font-size: 9px; padding: 3px 8px; background: linear-gradient(135deg, #10b981, #059669); color: white; border-radius: 12px; font-weight: 600; margin-left: 6px; box-shadow: 0 2px 4px rgba(16,185,129,0.3);">🏆 Top</span>'
+        badges_html += '<span style="display: inline-block; font-size: 9px; padding: 3px 8px; background: linear-gradient(135deg, #059669, #047857); color: white; border-radius: 12px; font-weight: 600; margin-left: 6px; box-shadow: 0 2px 4px rgba(5,150,105,0.3);">🏆 Most Positive</span>'
     elif is_worst:
-        badges_html += '<span style="display: inline-block; font-size: 9px; padding: 3px 8px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border-radius: 12px; font-weight: 600; margin-left: 6px; box-shadow: 0 2px 4px rgba(239,68,68,0.3);">⚠️ Low</span>'
+        badges_html += '<span style="display: inline-block; font-size: 9px; padding: 3px 8px; background: linear-gradient(135deg, #bb5a38, #a04a2f); color: white; border-radius: 12px; font-weight: 600; margin-left: 6px; box-shadow: 0 2px 4px rgba(187,90,56,0.3);">👎 Most Negative</span>'
 
-    # Start card with responsive container, border, and black background
-    html = '<div style="margin-bottom: 12px; width: 100%; box-sizing: border-box; padding: 16px; border: 2px solid #374151; border-radius: 12px; background: #1f2937; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">'
+    # Start card with responsive container, border, and dark blue-gray background
+    html = '<div style="margin-bottom: 12px; width: 100%; box-sizing: border-box; padding: 16px; border: 2px solid #134e4a; border-radius: 12px; background: #134e4a; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">'
     
     # Header section with entity name and badges
     html += '<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px;">'
@@ -145,10 +145,10 @@ def render_entity_card(
         html += f'<div style="font-size: 12px; color: #d1d5db;"><strong style="color: #f3f4f6;">📄 {content_items:,}</strong> items</div>'
     html += '</div>'
 
-    # Gradient gauge - Vibrant gradient for dark theme (bright red to yellow to emerald)
+    # Gradient gauge - App theme colors (rust to yellow to green)
     html += (
         '<div style="position: relative; background: linear-gradient(to right, '
-        '#f87171 0%, #fbbf24 50%, #34d399 100%); border-radius: 12px; height: 28px; '
+        '#d4a89a 0%, #ecebe3 50%, #c8ddc8 100%); border-radius: 12px; height: 28px; '
         'box-shadow: 0 2px 6px rgba(0,0,0,0.3); overflow: visible;">'
     )
 
@@ -174,13 +174,13 @@ def render_entity_card(
 
     # Left label
     html += '<div style="text-align: left; min-width: 50px;">'
-    html += '<div style="color: #fca5a5; font-weight: 700; font-size: 9px;">NEGATIVE</div>'
+    html += '<div style="color: #f4a582; font-weight: 700; font-size: 9px;">NEGATIVE</div>'
     html += '<div style="color: #d1d5db; font-size: 9px;">-1.0</div>'
     html += '</div>'
 
     # Center label
     html += '<div style="text-align: center; min-width: 50px;">'
-    html += '<div style="color: #fcd34d; font-weight: 700; font-size: 9px;">NEUTRAL</div>'
+    html += '<div style="color: #fde68a; font-weight: 700; font-size: 9px;">NEUTRAL</div>'
     html += '<div style="color: #d1d5db; font-size: 9px;">0</div>'
     html += '</div>'
 
