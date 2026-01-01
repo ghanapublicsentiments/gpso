@@ -324,7 +324,7 @@ if "playground_avatars" not in st.session_state:
 selected_model = st.session_state.get("playground_model")
 
 news = st.text_area(
-    "Enter Policy Announcement or Topic:",
+    "Enter news item or policy announcement:",
     height=200,
     placeholder="Example: Government announces new education policy to provide free laptops to all senior high school students...",
     value=st.session_state.playground_news_input,

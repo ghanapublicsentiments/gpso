@@ -159,7 +159,7 @@ with st.sidebar.container(height=310):
 
     elif page.title == "Chat":
         st.page_link("pages/chat.py", label="Chat", icon=":material/chat:")
-        st.write("Chat with an AI assistant for custom analysis of public sentiments.")
+        st.write("Chat with an AI assistant for custom analysis of public sentiments")
 
         st.session_state.chat_model = create_model_selector(key="chat_model_selector")
         
@@ -177,7 +177,7 @@ with st.sidebar.container(height=310):
 
     elif page.title == "Playground":
         st.page_link("pages/playground.py", label="Playground", icon=":material/experiment:")
-        st.write("Simulate public sentiments to news")
+        st.write("Test likely public sentiments to news items")
 
         st.session_state.playground_model = create_model_selector(key="playground_model_selector")
         
