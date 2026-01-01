@@ -35,7 +35,7 @@ BIGQUERY_IS_PROD: bool = os.getenv("BIGQUERY_IS_PROD", "true").lower() in ("true
 # LLM Provider Configuration
 PROVIDER_BASE_URL: dict[str, str] = {
     "ANTHROPIC": "https://api.anthropic.com/v1/",
-    "GEMINI": "https://generativelanguage.googleapis.com/v1beta/openai/",
+    "GOOGLE": "https://generativelanguage.googleapis.com/v1beta/openai/",
     "GROK": "https://api.x.ai/v1/",
     "NVIDIA": "https://integrate.api.nvidia.com/v1",
     "OPENAI": "https://api.openai.com/v1/"
