@@ -2,6 +2,7 @@
 
 import random
 from pathlib import Path
+from typing import Optional
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -10,7 +11,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
 from config import get_client
-from database.bigquery_manager import get_bigquery_manager
+from database.bigquery_manager import BigQueryManager
 
 # Load environment variables from project root
 project_root = Path(__file__).parent.parent
@@ -76,11 +77,12 @@ def embed_text(text: str, model: str = "all-MiniLM-L6-v2") -> list[float] | None
 
 
 @st.cache_data(ttl=st.session_state.get("cache_ttl", {}).get("playground_data", 600), show_spinner=False)
-def retrieve_similar_content_and_comments(query_embedding: list[float], top_k: int = 5, source_filter: str | None = None) -> list[dict]:
+def retrieve_similar_content_and_comments(_creds_dict: Optional[dict], query_embedding: list[float], top_k: int = 5, source_filter: str | None = None) -> list[dict]:
     """
     Retrieve most similar content and their comments from database based on cosine similarity.
     
     Args:
+        _creds_dict: Optional credentials dictionary (prefixed with _ to exclude from caching).
         query_embedding: Embedding vector of the query text.
         top_k: Number of top similar content items to return.
         source_filter: Optional filter for content type ('youtube' or 'facebook'). None = all sources.
@@ -93,7 +95,7 @@ def retrieve_similar_content_and_comments(query_embedding: list[float], top_k: i
             - comments: List of comment texts
             - similarity_score: Cosine similarity score
     """
-    manager = get_bigquery_manager()
+    manager = BigQueryManager(creds_dict=_creds_dict)
     
     # Get all content with comments using unified query
     rows = manager.get_content_with_comments(limit=1000, source_filter=source_filter)
@@ -323,6 +325,9 @@ if "playground_avatars" not in st.session_state:
 if "playground_data_source" not in st.session_state:
     st.session_state.playground_data_source = "All Sources"
 
+# Get credentials from session state if available (for Streamlit Cloud)
+creds_dict = st.session_state.get("gcp_credentials")
+
 # Main UI
 selected_model = st.session_state.get("playground_model")
 
@@ -385,7 +390,12 @@ if news and button:
             st.stop()
         
         # Step 2: Retrieve similar content and comments
-        similar_examples = retrieve_similar_content_and_comments(query_embedding, top_k=5, source_filter=source_param)
+        similar_examples = retrieve_similar_content_and_comments(
+            _creds_dict=creds_dict, 
+            query_embedding=query_embedding, 
+            top_k=5, 
+            source_filter=source_param
+        )
         
         if not similar_examples:
             st.warning(f"⚠️ No similar content found in database for {selected_source}. Unable to generate simulation.")

@@ -1,13 +1,14 @@
 """Chat interface page for interactive sentiment data exploration."""
 
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
 
 from chat_orchestrator import execute_tool_calls
-from database.bigquery_manager import get_bigquery_manager
+from database.bigquery_manager import BigQueryManager
 from input_sanitizer import sanitize_user_prompt
 
 
@@ -29,14 +30,18 @@ avatars = {
 # ============================================================================
 
 @st.cache_data(ttl=st.session_state.get("cache_ttl", {}).get("sentiment_data", 300), show_spinner=False)
-def load_sentiment_data() -> pd.DataFrame:
+def load_sentiment_data(_creds_dict: Optional[dict] = None) -> pd.DataFrame:
     """
     Load sentiment data from BigQuery.
+    
+    Args:
+        _creds_dict: Optional credentials dictionary (prefixed with _ to exclude from caching).
     
     Returns:
         DataFrame containing entity summaries.
     """
-    manager = get_bigquery_manager()
+    
+    manager = BigQueryManager(creds_dict=_creds_dict)
     summary_rows = manager.get_all_entity_summaries()
     df_summaries = pd.DataFrame(summary_rows)
     return df_summaries
@@ -45,7 +50,9 @@ def load_sentiment_data() -> pd.DataFrame:
 def init_sentiment_data() -> None:
     """Initialize sentiment data and related structures in session state."""
     if "sentiment_data_loaded" not in st.session_state:
-        df_summaries = load_sentiment_data()
+        # Get credentials from session state if available (for Streamlit Cloud)
+        creds_dict = st.session_state.get("gcp_credentials")
+        df_summaries = load_sentiment_data(_creds_dict=creds_dict)
         print(f"Loaded {len(df_summaries)} entity summaries")
         
         st.session_state["df_entity_summaries"] = df_summaries
