@@ -143,7 +143,7 @@ for message in st.session_state.messages:
             for fig_id in message["figure_ids"]:
                 fig = st.session_state.get("created_figures", {}).get(fig_id)
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True, theme=None)
+                    st.plotly_chart(fig, width='stretch', theme=None)
         
         if "dataframe_ids" in message:
             for df_id in message["dataframe_ids"]:
@@ -152,7 +152,7 @@ for message in st.session_state.messages:
                 else:
                     df = st.session_state.get("created_dataframes", {}).get(df_id, pd.DataFrame())
                 if not df.empty:
-                    st.dataframe(df, use_container_width=True)
+                    st.dataframe(df, width='stretch')
 
 if prompt := st.chat_input("What would you like to know?"):
     # Sanitize user input before processing
@@ -184,7 +184,7 @@ if prompt := st.chat_input("What would you like to know?"):
                 for fig_id in last_message["figure_ids"]:
                     fig = st.session_state.get("created_figures", {}).get(fig_id)
                     if fig:
-                        st.plotly_chart(fig, use_container_width=True, theme=None)
+                        st.plotly_chart(fig, width='stretch', theme=None)
             
             if "dataframe_ids" in last_message:
                 for df_id in last_message["dataframe_ids"]:
@@ -193,7 +193,7 @@ if prompt := st.chat_input("What would you like to know?"):
                     else:
                         df = st.session_state.get("created_dataframes", {}).get(df_id, pd.DataFrame())
                     if not df.empty:
-                        st.dataframe(df, use_container_width=True)
+                        st.dataframe(df, width='stretch')
             
             # Update session state with all new messages (including tool interactions)
             st.session_state.messages = updated_messages

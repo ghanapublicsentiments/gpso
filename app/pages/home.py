@@ -201,7 +201,7 @@ def plot_sentiment_trends(df: pd.DataFrame, selected_entities: list) -> None:
         # template="plotly_white"
     )
     
-    st.plotly_chart(fig, use_container_width=True, theme=None)
+    st.plotly_chart(fig, width='stretch', theme=None)
 
 
 def color_sentiment_rows(row: pd.Series) -> list[str]:
@@ -314,7 +314,7 @@ def render_newspaper_layout(
                     col1, col2, col3 = st.columns([1, 2, 1])
                     
                     with col1:
-                        if st.button("◀ Previous", key=f"{carousel_key}_prev", use_container_width=True):
+                        if st.button("◀ Previous", key=f"{carousel_key}_prev", width='stretch'):
                             st.session_state[carousel_key] = (current_idx - 1) % len(all_discussions)
                             st.rerun()
                     
@@ -322,7 +322,7 @@ def render_newspaper_layout(
                         st.markdown(f"<div style='text-align: center; padding: 8px;'>{current_idx + 1} of {len(all_discussions)}</div>", unsafe_allow_html=True)
                     
                     with col3:
-                        if st.button("Next ▶", key=f"{carousel_key}_next", use_container_width=True):
+                        if st.button("Next ▶", key=f"{carousel_key}_next", width='stretch'):
                             st.session_state[carousel_key] = (current_idx + 1) % len(all_discussions)
                             st.rerun()
             else:
