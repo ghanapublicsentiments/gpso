@@ -180,6 +180,10 @@ class AnalyzeCustomEntityParams(BaseModel):
         le=10000,  # Less than or equal to 10000
         description="Maximum number of comments to analyze (default 1000, min 1, max 10000)"
     )
+    source_filter: Literal["youtube", "facebook", "all"] | None = Field(
+        "all",
+        description="Data source to analyze: 'youtube' for YouTube only, 'facebook' for Facebook only, or 'all' for both sources (default: 'all')"
+    )
     
     @field_validator('entity_name')
     @classmethod
@@ -389,24 +393,62 @@ def analyze_custom_entity_sentiment(params: AnalyzeCustomEntityParams) -> str:
         
         manager = get_bigquery_manager()
         
-        query = f"""
-        SELECT 
-            CAST(v.id AS STRING) as content_id,
-            'youtube' as content_type,
-            v.title,
-            v.channel_name as source_name,
-            c.comment_text,
-            c.author_id,
-            v.published_date,
-            DATE(v.published_date) as publish_date
-        FROM `{manager.dataset_id}.youtube_videos` v
-        LEFT JOIN `{manager.dataset_id}.youtube_comments` c ON v.id = c.video_id
-        WHERE c.comment_text IS NOT NULL
-        AND v.published_date IS NOT NULL
-        ORDER BY v.published_date DESC
-        LIMIT {limit_comments}
-        """
-        content_data = manager._query(query)
+        # Build query based on source filter
+        query_parts = []
+        
+        # Add YouTube query if not filtered to Facebook only
+        if params.source_filter in ["youtube", "all"]:
+            query_parts.append(f"""
+                SELECT 
+                    CAST(v.id AS STRING) as content_id,
+                    'youtube' as content_type,
+                    v.title,
+                    v.channel_name as source_name,
+                    c.comment_text,
+                    c.author_id,
+                    v.published_date,
+                    DATE(v.published_date) as publish_date
+                FROM `{manager.dataset_id}.youtube_videos` v
+                LEFT JOIN `{manager.dataset_id}.youtube_comments` c ON v.id = c.video_id
+                WHERE c.comment_text IS NOT NULL
+                AND v.published_date IS NOT NULL
+            """)
+        
+        # Add Facebook query if not filtered to YouTube only
+        if params.source_filter in ["facebook", "all"]:
+            query_parts.append(f"""
+                SELECT 
+                    CAST(p.id AS STRING) as content_id,
+                    'facebook' as content_type,
+                    SUBSTR(p.message, 1, 100) as title,
+                    p.page_name as source_name,
+                    c.comment_text,
+                    c.author_id,
+                    p.created_date as published_date,
+                    DATE(p.created_date) as publish_date
+                FROM `{manager.dataset_id}.facebook_posts` p
+                LEFT JOIN `{manager.dataset_id}.facebook_comments` c ON p.id = c.post_id
+                WHERE c.comment_text IS NOT NULL
+                AND p.created_date IS NOT NULL
+            """)
+        
+        if not query_parts:
+            return json.dumps({"error": "No valid source filter specified"})
+        
+        # Combine query parts
+        query = "\nUNION ALL\n".join(query_parts)
+        query += f"\nORDER BY published_date DESC\nLIMIT {limit_comments}"
+        
+        try:
+            content_data = manager._query(query)
+        except Exception as e:
+            # Handle table not found errors gracefully
+            if "Not found: Table" in str(e):
+                return json.dumps({
+                    "error": f"Required tables not found for source filter '{params.source_filter}'. The data source may not be available.",
+                    "source_filter": params.source_filter
+                })
+            raise
         
         if not content_data:
             return json.dumps({"error": "No content data available"})
@@ -731,13 +773,19 @@ AVAILABLE_TOOLS = [
         "analyze_custom_entity_sentiment",
         """
         Analyze sentiment for a custom entity not in the predefined key issues/players.
-        Queries YouTube comments with timestamps, detects entity mentions using fuzzy matching 
-        (for people/organizations) or embedding-based matching (for issues), generates sentiments 
-        using LLM, and applies the full pipeline (smoothing + normalization).
+        Queries comments with timestamps from selected data sources (YouTube, Facebook, or both), 
+        detects entity mentions using fuzzy matching (for people/organizations) or embedding-based 
+        matching (for issues), generates sentiments using LLM, and applies the full pipeline 
+        (smoothing + normalization).
         
         IMPORTANT: User must specify entity_type:
         - 'person' or 'organization': Uses fuzzy string matching (best for names)
         - 'issue': Uses embedding-based semantic matching (best for policies/topics)
+        
+        Data source options:
+        - 'youtube': Analyze only YouTube comments
+        - 'facebook': Analyze only Facebook comments  
+        - 'all': Analyze both sources (default)
         
         By default, aggregates by day to show sentiment trends over time. Each time period is 
         processed independently through the full pipeline. Returns time series data with 
