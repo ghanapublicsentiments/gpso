@@ -6,11 +6,13 @@ import streamlit as st
 st.markdown("""
 ### Terms of Service
 
-**Last Updated: December 29, 2025**
+**Last Updated: January 1, 2026**
 
 #### 1. Acceptance of Terms
 
-By accessing and using the Ghana Public Sentiments Observatory (GPSO) platform, you accept and agree to be bound by the terms and provisions of this agreement.
+By accessing and using the Ghana Public Senti#### 7. Intellectual Property
+
+**7.1 Open Source**ts Observatory (GPSO) platform, you accept and agree to be bound by the terms and provisions of this agreement.
 
 #### 2. Description of Service
 
@@ -168,46 +170,133 @@ To exercise any of these rights, please follow the deletion request process outl
 - If we become aware that we have inadvertently collected data from a child under 13, we will delete it immediately
 - Parents or guardians may request deletion of their child's data by following the process in section 5.1
 
-#### 6. Intellectual Property
+#### 6. Legal and Government Requests
+
+**6.1 Legal Review Requirement**
+
+All legal requests for user data or information disclosure shall be subject to rigorous legal review:
+
+- **Mandatory Legal Assessment:** Every government or legal request will be reviewed by qualified legal counsel to verify:
+  - Proper legal authority and jurisdiction
+  - Compliance with Ghanaian law and international standards
+  - Specificity and scope of the request
+  - Validity of supporting legal documents
+- **Threshold for Compliance:** We will only comply with requests that meet strict legal standards and are properly authorized under applicable law
+- **Due Process:** We require all requests to follow proper legal procedures and provide adequate legal basis
+
+**6.2 Right to Challenge Unlawful Requests**
+
+We are committed to protecting user rights and will actively challenge requests we deem unlawful or overreaching:
+
+- **Legal Challenge Process:**
+  - Any request deemed unlawful, unconstitutional, or overly broad will be challenged through appropriate legal channels
+  - We reserve the right to file motions to quash, narrow, or otherwise contest requests that violate user rights
+  - We may seek judicial review of requests that appear to lack proper legal foundation
+- **User Notification:** Where legally permitted, we will notify affected users of legal requests to enable them to seek independent legal counsel and challenge the request themselves
+- **No Compliance Without Valid Authority:** We will not comply with requests that:
+  - Lack proper judicial authorization or legal basis
+  - Violate fundamental rights under Ghana's Constitution or international human rights law
+  - Are overly broad or lack sufficient specificity
+  - Circumvent proper legal procedures
+
+**6.3 Data Minimization Policy**
+
+We are committed to disclosing the minimum information necessary to comply with valid legal requests:
+
+- **Scope Limitation:** We will disclose only the specific data explicitly required by a valid legal order
+- **Aggregated Data Preference:** Where possible, we will provide aggregated or anonymized data rather than individual-level information
+- **Narrow Interpretation:** We will interpret the scope of legal requests narrowly to minimize disclosure
+- **User Privacy Protection:** We will actively resist requests for:
+  - Bulk data disclosure without individual justification
+  - Access to systems or databases beyond the specific request scope
+  - Ongoing or continuous data access arrangements
+- **Technical Limitations:** Due to our privacy-by-design architecture (including hashing and anonymization), we may be unable to identify or isolate specific user data even with a valid legal order
+
+**6.4 Transparency and Documentation**
+
+We maintain comprehensive documentation of all legal and government requests:
+
+- **Request Registry:** We maintain a detailed log of all legal requests, including:
+  - Date and source of the request
+  - Legal authority cited (statute, court order, warrant, etc.)
+  - Scope and specificity of the request
+  - Identity of requesting legal actors (law enforcement agency, court, regulatory body, etc.)
+  
+- **Response Documentation:** For each request, we document:
+  - Our legal analysis and reasoning
+  - Decisions to comply, challenge, or partially comply
+  - Data disclosed (if any) and legal justification
+  - Notification to affected users (where legally permitted)
+  - Any legal challenges filed or objections raised
+  
+- **Transparency Reports:** Subject to legal constraints:
+  - We will publish annual transparency reports detailing the number and types of legal requests received
+  - Reports will include aggregate statistics on compliance, challenges, and outcomes
+  - Individual request details will be anonymized to protect ongoing legal proceedings
+  
+- **Record Retention:** Documentation of legal requests and responses will be retained for:
+  - Minimum of 7 years for legal and audit purposes
+  - Available for review by authorized legal counsel or regulatory auditors
+  - Protected with appropriate security measures to prevent unauthorized access
+
+**6.5 International Legal Requests**
+
+Requests from foreign governments or international organizations will be subject to additional scrutiny:
+
+- **Jurisdiction Verification:** We will verify proper jurisdiction and legal authority under Ghanaian law
+- **Mutual Legal Assistance Treaties (MLAT):** We require foreign requests to follow proper diplomatic and legal channels
+- **No Direct Compliance:** We will not comply directly with foreign requests that bypass Ghanaian legal processes
+- **Human Rights Assessment:** We will evaluate requests against international human rights standards and may refuse compliance where disclosure could endanger individuals
+
+**6.6 Emergency Requests**
+
+In cases of genuine emergency (imminent threat to life or safety):
+
+- **Expedited Review:** Emergency requests will receive immediate legal review
+- **Good Faith Standard:** We may disclose limited information where we reasonably believe there is an imminent threat
+- **Subsequent Validation:** Emergency disclosures must be validated by proper legal authorization within 72 hours
+- **Documentation:** All emergency requests and responses will be fully documented with detailed reasoning
+
+#### 7. Intellectual Property
 
 **6.1 Open Source**
 - This platform is open source and available on [GitHub](https://github.com/ghanapublicsentiments/gpso)
 - The code is licensed under the terms specified in the repository
 - Contributions are welcome subject to the project's contribution guidelines
 
-**6.2 Content**
+**7.2 Content**
 - Sentiment analysis results and insights generated by GPSO are freely available
 - Proper attribution is appreciated when using or citing our data
 
-#### 7. Third-Party Services
+#### 8. Third-Party Services
 
-**7.1 AI Models**
+**8.1 AI Models**
 - The platform integrates with third-party AI model providers (OpenAI, Google, Anthropic, etc.)
 - Your use of these models is subject to their respective terms of service
 - You are responsible for providing and securing your own API keys
 
-**7.2 Data Sources**
+**8.2 Data Sources**
 - We aggregate data from various public sources
 - We are not responsible for the accuracy or content of third-party sources
 
-#### 8. Disclaimers
+#### 9. Disclaimers
 
-**8.1 No Warranty**
+**9.1 No Warranty**
 - The service is provided "as is" and "as available"
 - We make no warranties, expressed or implied, regarding the service
 - We do not warrant that the service will be uninterrupted or error-free
 
-**8.2 Limitation of Liability**
+**9.2 Limitation of Liability**
 - We shall not be liable for any indirect, incidental, or consequential damages
 - Our liability is limited to the maximum extent permitted by law
 
-#### 9. Changes to Terms
+#### 10. Changes to Terms
 
 We reserve the right to modify these terms at any time. Changes will be effective immediately upon posting to the platform. Your continued use of the service constitutes acceptance of modified terms.
 
-#### 10. Research and Academic Use
+#### 11. Research and Academic Use
 
-**10.1 Citation**
+**11.1 Citation**
 If you use GPSO data or insights in academic research, please cite:
 ```
 Ghana Public Sentiments Observatory (GPSO)
@@ -215,16 +304,16 @@ Available at: https://ghanapublicsentiments.com, https://github.com/ghanapublics
 Accessed: [Date]
 ```
 
-**10.2 Collaboration**
+**11.2 Collaboration**
 We welcome collaboration with researchers and institutions. Please contact us through GitHub for partnership opportunities.
 
-#### 11. Contact Information
+#### 12. Contact Information
 
 For questions, concerns, or feedback regarding these terms:
 - GitHub Issues: [github.com/ghanapublicsentiments/gpso/issues](https://github.com/ghanapublicsentiments/gpso/issues)
 - Repository: [github.com/ghanapublicsentiments/gpso](https://github.com/ghanapublicsentiments/gpso)
 
-#### 12. Governing Law
+#### 13. Governing Law
 
 These terms shall be governed by and construed in accordance with the laws of Ghana, without regard to its conflict of law provisions.
 
