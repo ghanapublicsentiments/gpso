@@ -46,7 +46,6 @@ MODEL_PROVIDER_MAP: dict[str, str] = {
     # Google Gemini models
     "gemini-3-flash-preview": "GOOGLE",
     "gemini-3-pro-preview": "GOOGLE",
-    "gemini-2.5-flash-lite": "GOOGLE",
 
     # OpenAI models
     "gpt-5-nano": "OPENAI",
