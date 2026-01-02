@@ -1,13 +1,14 @@
 """Chat interface page for interactive sentiment data exploration."""
 
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
 
 from chat_orchestrator import execute_tool_calls
-from database.bigquery_manager import get_bigquery_manager
+from database.bigquery_manager import BigQueryManager
 from input_sanitizer import sanitize_user_prompt
 
 
@@ -29,14 +30,18 @@ avatars = {
 # ============================================================================
 
 @st.cache_data(ttl=st.session_state.get("cache_ttl", {}).get("sentiment_data", 300), show_spinner=False)
-def load_sentiment_data() -> pd.DataFrame:
+def load_sentiment_data(_creds_dict: Optional[dict] = None) -> pd.DataFrame:
     """
     Load sentiment data from BigQuery.
+    
+    Args:
+        _creds_dict: Optional credentials dictionary (prefixed with _ to exclude from caching).
     
     Returns:
         DataFrame containing entity summaries.
     """
-    manager = get_bigquery_manager()
+    
+    manager = BigQueryManager(creds_dict=_creds_dict)
     summary_rows = manager.get_all_entity_summaries()
     df_summaries = pd.DataFrame(summary_rows)
     return df_summaries
@@ -45,7 +50,9 @@ def load_sentiment_data() -> pd.DataFrame:
 def init_sentiment_data() -> None:
     """Initialize sentiment data and related structures in session state."""
     if "sentiment_data_loaded" not in st.session_state:
-        df_summaries = load_sentiment_data()
+        # Get credentials from session state if available (for Streamlit Cloud)
+        creds_dict = st.session_state.get("gcp_credentials")
+        df_summaries = load_sentiment_data(_creds_dict=creds_dict)
         print(f"Loaded {len(df_summaries)} entity summaries")
         
         st.session_state["df_entity_summaries"] = df_summaries
@@ -143,7 +150,7 @@ for message in st.session_state.messages:
             for fig_id in message["figure_ids"]:
                 fig = st.session_state.get("created_figures", {}).get(fig_id)
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True, theme=None)
+                    st.plotly_chart(fig, width='stretch', theme=None)
         
         if "dataframe_ids" in message:
             for df_id in message["dataframe_ids"]:
@@ -152,7 +159,7 @@ for message in st.session_state.messages:
                 else:
                     df = st.session_state.get("created_dataframes", {}).get(df_id, pd.DataFrame())
                 if not df.empty:
-                    st.dataframe(df, use_container_width=True)
+                    st.dataframe(df, width='stretch')
 
 if prompt := st.chat_input("What would you like to know?"):
     # Sanitize user input before processing
@@ -184,7 +191,7 @@ if prompt := st.chat_input("What would you like to know?"):
                 for fig_id in last_message["figure_ids"]:
                     fig = st.session_state.get("created_figures", {}).get(fig_id)
                     if fig:
-                        st.plotly_chart(fig, use_container_width=True, theme=None)
+                        st.plotly_chart(fig, width='stretch', theme=None)
             
             if "dataframe_ids" in last_message:
                 for df_id in last_message["dataframe_ids"]:
@@ -193,7 +200,7 @@ if prompt := st.chat_input("What would you like to know?"):
                     else:
                         df = st.session_state.get("created_dataframes", {}).get(df_id, pd.DataFrame())
                     if not df.empty:
-                        st.dataframe(df, use_container_width=True)
+                        st.dataframe(df, width='stretch')
             
             # Update session state with all new messages (including tool interactions)
             st.session_state.messages = updated_messages

@@ -213,7 +213,7 @@ with st.sidebar.container(height=310):
         st.write("Review the terms and conditions for using the Ghana Public Sentiments Observatory platform.")
 
 # Refresh button
-if st.sidebar.button("Refresh data", icon=":material/autorenew:", type="secondary", use_container_width=True):
+if st.sidebar.button("Refresh data", icon=":material/autorenew:", type="secondary", width='stretch'):
     st.rerun()
 
 st.sidebar.divider()

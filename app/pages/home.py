@@ -7,19 +7,22 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from database.bigquery_manager import get_bigquery_manager
+from database.bigquery_manager import BigQueryManager
 from pipeline.entities import KEY_ISSUES, KEY_PLAYERS
 from ui_components import render_entity_card
 
 
 @st.cache_data(ttl=st.session_state.get("cache_ttl", {}).get("sentiment_data", 300), show_spinner=False)
-def get_latest_data_date() -> str | None:
+def get_latest_data_date(_creds_dict: Optional[dict] = None) -> str | None:
     """Get the latest run date from the pipeline_entity_summaries table.
+    
+    Args:
+        _creds_dict: Optional credentials dictionary (prefixed with _ to exclude from caching).
     
     Returns:
         str | None: Formatted string with the date and day of week, or None if no data.
     """
-    manager = get_bigquery_manager()
+    manager = BigQueryManager(creds_dict=_creds_dict)
     run_info = manager.get_latest_run_info()
     
     if run_info and 'completed_at' in run_info:
@@ -35,7 +38,7 @@ def get_latest_data_date() -> str | None:
 
 
 @st.cache_data(ttl=st.session_state.get("cache_ttl", {}).get("sentiment_data", 300), show_spinner=False)
-def load_current_sentiment_data(source_filter: Optional[str] = None) -> pd.DataFrame:
+def load_current_sentiment_data(_creds_dict: Optional[dict] = None, source_filter: Optional[str] = None) -> pd.DataFrame:
     """Load current sentiment data from pipeline_comment_sentiments table.
     
     Returns DataFrame with both tracked entities (KEY_PLAYERS + KEY_ISSUES) and discussion topics.
@@ -45,6 +48,7 @@ def load_current_sentiment_data(source_filter: Optional[str] = None) -> pd.DataF
     Discussion topics: All other entities found in the data.
     
     Args:
+        _creds_dict: Optional credentials dictionary (prefixed with _ to exclude from caching).
         source_filter: Optional filter for content type ('youtube' or 'facebook'). None = all sources.
     
     Returns:
@@ -52,7 +56,7 @@ def load_current_sentiment_data(source_filter: Optional[str] = None) -> pd.DataF
     """
     tracked_entity_names = set(KEY_PLAYERS.keys()) | set(KEY_ISSUES.keys())
     
-    manager = get_bigquery_manager()
+    manager = BigQueryManager(creds_dict=_creds_dict)
     rows = manager.get_current_sentiment_data(min_sentiment_count=2, source_filter=source_filter)
     
     if not rows:
@@ -86,7 +90,7 @@ def load_current_sentiment_data(source_filter: Optional[str] = None) -> pd.DataF
 
 
 @st.cache_data(ttl=st.session_state.get("cache_ttl", {}).get("sentiment_data", 300), show_spinner=False)
-def load_sentiment_trends(source_filter: Optional[str] = None) -> pd.DataFrame:
+def load_sentiment_trends(_creds_dict: Optional[dict] = None, source_filter: Optional[str] = None) -> pd.DataFrame:
     """Load sentiment trends over time for tracked entities only.
     
     Returns DataFrame with date, entity, avg_sentiment, sentiment_summary, and cumulative unique authors.
@@ -94,6 +98,7 @@ def load_sentiment_trends(source_filter: Optional[str] = None) -> pd.DataFrame:
     Includes only KEY_PLAYERS + KEY_ISSUES entities.
     
     Args:
+        _creds_dict: Optional credentials dictionary (prefixed with _ to exclude from caching).
         source_filter: Optional filter for content type ('youtube' or 'facebook'). None = all sources.
     
     Returns:
@@ -101,7 +106,7 @@ def load_sentiment_trends(source_filter: Optional[str] = None) -> pd.DataFrame:
     """
     tracked_entity_names = set(KEY_PLAYERS.keys()) | set(KEY_ISSUES.keys())
     
-    manager = get_bigquery_manager()
+    manager = BigQueryManager(creds_dict=_creds_dict)
     rows = manager.get_sentiment_trends_with_authors(min_sentiment_count=2, source_filter=source_filter)
 
     print(rows)
@@ -201,7 +206,7 @@ def plot_sentiment_trends(df: pd.DataFrame, selected_entities: list) -> None:
         # template="plotly_white"
     )
     
-    st.plotly_chart(fig, use_container_width=True, theme=None)
+    st.plotly_chart(fig, width='stretch', theme=None)
 
 
 def color_sentiment_rows(row: pd.Series) -> list[str]:
@@ -314,7 +319,7 @@ def render_newspaper_layout(
                     col1, col2, col3 = st.columns([1, 2, 1])
                     
                     with col1:
-                        if st.button("◀ Previous", key=f"{carousel_key}_prev", use_container_width=True):
+                        if st.button("◀ Previous", key=f"{carousel_key}_prev", width='stretch'):
                             st.session_state[carousel_key] = (current_idx - 1) % len(all_discussions)
                             st.rerun()
                     
@@ -322,7 +327,7 @@ def render_newspaper_layout(
                         st.markdown(f"<div style='text-align: center; padding: 8px;'>{current_idx + 1} of {len(all_discussions)}</div>", unsafe_allow_html=True)
                     
                     with col3:
-                        if st.button("Next ▶", key=f"{carousel_key}_next", use_container_width=True):
+                        if st.button("Next ▶", key=f"{carousel_key}_next", width='stretch'):
                             st.session_state[carousel_key] = (current_idx + 1) % len(all_discussions)
                             st.rerun()
             else:
@@ -358,6 +363,7 @@ def render_entity_tab(
     multiselect_key: str,
     label: str,
     help_text: str,
+    creds_dict: Optional[dict] = None,
     show_popular_badge: bool = False
 ) -> None:
     """
@@ -369,6 +375,7 @@ def render_entity_tab(
         multiselect_key: Unique key for the multiselect widget.
         label: Label for the multiselect widget.
         help_text: Help text for the multiselect widget.
+        creds_dict: Optional credentials dictionary for BigQuery.
         show_popular_badge: Whether to show "Popular" badge for top 3 entities by mentions.
     """
     if entities_df.empty:
@@ -386,7 +393,7 @@ def render_entity_tab(
     most_positive = entities_sorted.loc[entities_sorted['Avg Sentiment'].idxmax(), 'Entity']
 
     # Display latest data date
-    latest_date = get_latest_data_date()
+    latest_date = get_latest_data_date(_creds_dict=creds_dict)
     if latest_date:
         st.caption(latest_date)
 
@@ -453,6 +460,9 @@ def render_entity_tab(
 
 def main() -> None:
     """Main function to render the home page with sentiment analysis tabs."""
+    # Get credentials from session state if available (for Streamlit Cloud)
+    creds_dict = st.session_state.get("gcp_credentials")
+    
     # Initialize session state for multiselect persistence
     if "home_discussion_entities" not in st.session_state:
         st.session_state.home_discussion_entities = None
@@ -467,7 +477,7 @@ def main() -> None:
     
     with top_col1:
         st.markdown("##### 💬 What People are Saying")
-        latest_date = get_latest_data_date()
+        latest_date = get_latest_data_date(_creds_dict=creds_dict)
         if latest_date:
             st.caption(latest_date)
     
@@ -493,7 +503,7 @@ def main() -> None:
     
     # Load data
     with st.spinner("Loading sentiment data..."):
-        current_data = load_current_sentiment_data(source_filter=source_param)
+        current_data = load_current_sentiment_data(_creds_dict=creds_dict, source_filter=source_param)
     
     if current_data.empty:
         st.warning("⚠️ No sentiment data found in the database.")
@@ -525,7 +535,7 @@ def main() -> None:
     st.markdown("##### 📈 Historical Trends")
     
     with st.spinner("Loading trend data..."):
-        trends_df = load_sentiment_trends(source_filter=source_param)
+        trends_df = load_sentiment_trends(_creds_dict=creds_dict, source_filter=source_param)
     
     if not trends_df.empty:
         # Get unique entities
