@@ -634,13 +634,14 @@ class BigQueryManager:
         self._insert_rows('facebook_comments', rows)
         return len(rows)
 
-    def get_content_with_comments(self, limit: int = 1000) -> list[dict]:
+    def get_content_with_comments(self, limit: int = 1000, source_filter: Optional[str] = None) -> list[dict]:
         """Get all content (YouTube videos, Facebook posts) with their comments.
 
         Returns unified structure for playground similarity matching.
 
         Args:
             limit: Maximum number of content-comment pairs to retrieve.
+            source_filter: Optional filter for content type ('youtube' or 'facebook'). None = all sources.
 
         Returns:
             list[dict]: List of dicts with:
@@ -650,32 +651,51 @@ class BigQueryManager:
                 - source_name: str (channel name or page name)
                 - comment_text: str
         """
-        query = f"""
-        SELECT 
-            CAST(v.id AS STRING) as content_id,
-            'youtube' as content_type,
-            v.title,
-            v.channel_name as source_name,
-            c.comment_text
-        FROM `{self.dataset_id}.youtube_videos` v
-        LEFT JOIN `{self.dataset_id}.youtube_comments` c ON v.id = c.video_id
-        WHERE c.comment_text IS NOT NULL
-        
-        UNION ALL
-        
-        SELECT 
-            CAST(p.id AS STRING) as content_id,
-            'facebook' as content_type,
-            SUBSTR(p.message, 1, 100) as title,
-            p.page_name as source_name,
-            c.comment_text
-        FROM `{self.dataset_id}.facebook_posts` p
-        LEFT JOIN `{self.dataset_id}.facebook_comments` c ON p.id = c.post_id
-        WHERE c.comment_text IS NOT NULL
-        
-        LIMIT {limit}
-        """
-        return self._query(query)
+        try:
+            query_parts = []
+            
+            # Add YouTube query if not filtered to Facebook only
+            if source_filter != 'facebook':
+                query_parts.append(f"""
+                    SELECT 
+                        CAST(v.id AS STRING) as content_id,
+                        'youtube' as content_type,
+                        v.title,
+                        v.channel_name as source_name,
+                        c.comment_text
+                    FROM `{self.dataset_id}.youtube_videos` v
+                    LEFT JOIN `{self.dataset_id}.youtube_comments` c ON v.id = c.video_id
+                    WHERE c.comment_text IS NOT NULL
+                """)
+            
+            # Add Facebook query if not filtered to YouTube only
+            if source_filter != 'youtube':
+                query_parts.append(f"""
+                    SELECT 
+                        CAST(p.id AS STRING) as content_id,
+                        'facebook' as content_type,
+                        SUBSTR(p.message, 1, 100) as title,
+                        p.page_name as source_name,
+                        c.comment_text
+                    FROM `{self.dataset_id}.facebook_posts` p
+                    LEFT JOIN `{self.dataset_id}.facebook_comments` c ON p.id = c.post_id
+                    WHERE c.comment_text IS NOT NULL
+                """)
+            
+            if not query_parts:
+                return []
+            
+            # Combine query parts
+            query = "\nUNION ALL\n".join(query_parts)
+            query += f"\nLIMIT {limit}"
+            
+            return self._query(query)
+        except Exception as e:
+            # Handle table not found errors gracefully
+            if "Not found: Table" in str(e):
+                return []
+            # Re-raise other exceptions
+            raise
 
 
 def get_bigquery_manager() -> BigQueryManager:

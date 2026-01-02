@@ -76,13 +76,14 @@ def embed_text(text: str, model: str = "all-MiniLM-L6-v2") -> list[float] | None
 
 
 @st.cache_data(ttl=st.session_state.get("cache_ttl", {}).get("playground_data", 600), show_spinner=False)
-def retrieve_similar_content_and_comments(query_embedding: list[float], top_k: int = 5) -> list[dict]:
+def retrieve_similar_content_and_comments(query_embedding: list[float], top_k: int = 5, source_filter: str | None = None) -> list[dict]:
     """
     Retrieve most similar content and their comments from database based on cosine similarity.
     
     Args:
         query_embedding: Embedding vector of the query text.
         top_k: Number of top similar content items to return.
+        source_filter: Optional filter for content type ('youtube' or 'facebook'). None = all sources.
     
     Returns:
         List of dictionaries containing:
@@ -95,7 +96,7 @@ def retrieve_similar_content_and_comments(query_embedding: list[float], top_k: i
     manager = get_bigquery_manager()
     
     # Get all content with comments using unified query
-    rows = manager.get_content_with_comments(limit=1000)
+    rows = manager.get_content_with_comments(limit=1000, source_filter=source_filter)
     
     if not rows:
         return []
@@ -319,9 +320,33 @@ if "playground_generated_comments" not in st.session_state:
     st.session_state.playground_generated_comments = []
 if "playground_avatars" not in st.session_state:
     st.session_state.playground_avatars = []
+if "playground_data_source" not in st.session_state:
+    st.session_state.playground_data_source = "All Sources"
 
 # Main UI
 selected_model = st.session_state.get("playground_model")
+
+# Add data source filter dropdown
+top_col1, top_col2 = st.columns([3, 1])
+
+with top_col2:
+    source_options = ["All Sources", "YouTube Only", "Facebook Only"]
+    selected_source = st.selectbox(
+        "Data source:",
+        options=source_options,
+        index=source_options.index(st.session_state.playground_data_source),
+        key="playground_source_filter",
+        help="Filter training data by source",
+        label_visibility="collapsed"
+    )
+    st.session_state.playground_data_source = selected_source
+
+# Map UI selection to filter parameter
+source_param = None
+if selected_source == "YouTube Only":
+    source_param = "youtube"
+elif selected_source == "Facebook Only":
+    source_param = "facebook"
 
 news = st.text_area(
     "Enter news item or policy announcement:",
@@ -360,10 +385,11 @@ if news and button:
             st.stop()
         
         # Step 2: Retrieve similar content and comments
-        similar_examples = retrieve_similar_content_and_comments(query_embedding, top_k=5)
+        similar_examples = retrieve_similar_content_and_comments(query_embedding, top_k=5, source_filter=source_param)
         
         if not similar_examples:
-            st.warning("No similar content found in database. Unable to generate simulation.")
+            st.warning(f"⚠️ No similar content found in database for {selected_source}. Unable to generate simulation.")
+            st.info("💡 Try selecting a different data source.")
             st.stop()
         
         # Store similar examples in session state
