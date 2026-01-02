@@ -174,20 +174,28 @@ def execute_tool_calls(
             return error_response["content"], updated_messages
         
         if assistant_message.tool_calls:
+            # Preserve tool calls with thought_signature for Gemini models
+            tool_calls_data = []
+            for tc in assistant_message.tool_calls:
+                tool_call_dict = {
+                    "id": tc.id,
+                    "type": tc.type,
+                    "function": {
+                        "name": tc.function.name,
+                        "arguments": tc.function.arguments,
+                    }
+                }
+                
+                # thought_signature in extra_content
+                if hasattr(tc, 'extra_content') and tc.extra_content:
+                    tool_call_dict["extra_content"] = tc.extra_content
+                
+                tool_calls_data.append(tool_call_dict)
+            
             updated_messages.append({
                 "role": "assistant",
                 "content": assistant_message.content or "",
-                "tool_calls": [
-                    {
-                        "id": tc.id,
-                        "type": tc.type,
-                        "function": {
-                            "name": tc.function.name,
-                            "arguments": tc.function.arguments,
-                        }
-                    }
-                    for tc in assistant_message.tool_calls
-                ]
+                "tool_calls": tool_calls_data
             })
             
             # Track created figures and dataframes in this iteration
